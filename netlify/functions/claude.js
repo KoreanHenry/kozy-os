@@ -3,7 +3,14 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const { system, prompt, max_tokens = 1500 } = JSON.parse(event.body || '{}');
+  let parsed;
+  try {
+    parsed = JSON.parse(event.body || '{}');
+  } catch(e) {
+    return { statusCode: 400, body: JSON.stringify({ text: 'JSON 파싱 오류: ' + e.message }) };
+  }
+
+  const { system, prompt, max_tokens = 1500 } = parsed;
 
   if (!prompt) {
     return { statusCode: 400, body: JSON.stringify({ text: 'prompt가 없습니다' }) };
@@ -11,21 +18,25 @@ exports.handler = async (event) => {
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return { statusCode: 200, body: JSON.stringify({ text: '오류: API 키가 없습니다. Netlify 환경변수를 확인해주세요.' }) };
+    return { statusCode: 200, body: JSON.stringify({ text: '오류: API 키가 없습니다.' }) };
   }
+
+  // 이모지 등 특수문자 안전하게 처리
+  const safePrompt = prompt.replace(/[\u{D800}-\u{DFFF}]/gu, '');
+  const safeSystem = system ? system.replace(/[\u{D800}-\u{DFFF}]/gu, '') : null;
 
   try {
     const body = {
       model: 'claude-sonnet-4-20250514',
       max_tokens,
-      messages: [{ role: 'user', content: prompt }]
+      messages: [{ role: 'user', content: safePrompt }]
     };
-    if (system) body.system = system;
+    if (safeSystem) body.system = safeSystem;
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json; charset=utf-8',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
@@ -34,7 +45,6 @@ exports.handler = async (event) => {
 
     const data = await res.json();
 
-    // API 오류 상세 반환
     if (data.error) {
       return {
         statusCode: 200,
