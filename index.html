@@ -641,9 +641,37 @@ body{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg)
         <div class="chip" onclick="selectChip(this,'mode-grp')">Self-edit</div>
       </div>
     </div>
-    <div class="mf">
-      <div class="ml">시장 조사 메모 <span class="m-badge">선택사항</span></div>
-      <textarea class="mi" id="r-market" rows="2" placeholder="잘 되는 채널 패턴, 트렌드 메모..."></textarea>
+    <!-- 선택 입력 필드 토글 -->
+    <div style="margin-bottom:14px">
+      <button class="btn btn-outline" style="width:100%;justify-content:center;font-size:12px" onclick="toggleAdvanced()">
+        <span id="adv-toggle-text">+ 상세 요구사항 입력 (선택)</span>
+      </button>
+    </div>
+    <div id="adv-fields" style="display:none">
+      <div class="mf">
+        <div class="ml">핵심 내용 / 영상 의도 <span class="m-badge">선택</span></div>
+        <textarea class="mi" id="r-intent" rows="2" placeholder="예: 아무나 vs 아무거나 혼동 문제&#10;예: 슬랭과 표준어의 괴리감 대비"></textarea>
+      </div>
+      <div class="mf">
+        <div class="ml">훅 첫 대사 아이디어 <span class="m-badge">선택</span></div>
+        <input class="mi" id="r-hook-line" placeholder="예: Stop saying 아무나 like this!">
+      </div>
+      <div class="mf">
+        <div class="ml">상황극 설정 <span class="m-badge">선택</span></div>
+        <textarea class="mi" id="r-skit" rows="2" placeholder="예: 외국인이 식당에서 주문할 때 아무나 주세요라고 말하는 상황"></textarea>
+      </div>
+      <div class="mf">
+        <div class="ml">가르칠 핵심 표현 <span class="m-badge">선택</span></div>
+        <input class="mi" id="r-expression" placeholder="예: 아무거나 주세요 / 아무나 오세요">
+      </div>
+      <div class="mf">
+        <div class="ml">CTA 방향 <span class="m-badge">선택</span></div>
+        <input class="mi" id="r-cta" placeholder="예: 저장 유도 / 시리즈 예고 / 댓글 유도">
+      </div>
+      <div class="mf">
+        <div class="ml">시장 조사 메모 <span class="m-badge">선택</span></div>
+        <textarea class="mi" id="r-market" rows="2" placeholder="잘 되는 채널 패턴, 트렌드 메모..."></textarea>
+      </div>
     </div>
     <div class="divider"></div>
     <button class="gen-btn" id="reel-btn" onclick="generateReel()">대본 생성하기</button>
@@ -652,7 +680,7 @@ body{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg)
         <span class="out-label">생성된 대본</span>
         <div class="out-actions">
           <button class="copy-btn" id="reel-copy" onclick="copyOut('reel-box','reel-copy')">복사</button>
-          <button class="notion-btn" id="reel-notion" onclick="saveReelToNotion()">📝 Notion 저장</button>
+          <button class="notion-btn" id="reel-notion">📝 Notion 저장 (준비 중)</button>
         </div>
       </div>
       <div class="out-box" id="reel-box"></div>
@@ -820,7 +848,12 @@ async function generateReel(){
   const hookType=getChip('hook-grp');
   const duration=getChip('dur-grp');
   const mode=getChip('mode-grp');
-  const market=document.getElementById('r-market').value.trim();
+  const market=document.getElementById('r-market')?.value.trim()||'';
+  const intent=document.getElementById('r-intent')?.value.trim()||'';
+  const hookLine=document.getElementById('r-hook-line')?.value.trim()||'';
+  const skit=document.getElementById('r-skit')?.value.trim()||'';
+  const expression=document.getElementById('r-expression')?.value.trim()||'';
+  const cta=document.getElementById('r-cta')?.value.trim()||'';
   const isEditor=mode.includes('편집자');
   const isSelf=mode.includes('Self-edit');
 
@@ -831,20 +864,90 @@ async function generateReel(){
   out.classList.add('show');
   box.innerHTML='<div class="loading-dots">Claude가 대본 작성 중<div class="da"><span></span><span></span><span></span></div></div>';
 
+  // 레퍼런스 대본 (형식 기준)
+  const REF=`
+=== 레퍼런스 형식 (반드시 이 형식을 따를 것) ===
+
+[Self-edit 형식 예시]
+1. Stop saying '천만에요' in Korea! You sound like a robot!
+2. 외국인: 어? 지갑 떨어뜨리셨어요!
+3. 한국인: 아! 정말 감사합니다!
+4. 외국인: 천.만.에.요.
+5. 곤룡포: Noooooo one says like that! Watch this!
+6. 한국인: 아! 정말 감사합니다!
+7. 외국인: 1. 아니에요~ 2. 괜찮아요~ 3. 네~
+8. 곤룡포: You got this? SHARE this with your Korean study buddy!
+
+[편집자용 형식 예시]
+Editor Quick Guide:
+- GREEN Subtitle Rule: 시청자가 말해야 할 때 GREEN BOX 자막
+- The 2.5-Second Rule: FREEZE FRAME 2.5초 + Tick-Tock SFX
+- Answer Rule: 정답 시 Ding! SFX
+
+Scene 1: [Visual] King Sejong / Palace [Caption] "Stop saying X in Korea!"
+Scene 2: [Visual] White Shirt + Black Shirt [Caption] 상황극 대사
+Scene 3: [Visual] King [Action] FAST ZOOM-IN [Caption] "NOOOOOO!"
+Scene 4: [Visual] White Shirt [Caption] 올바른 표현 + Ding! SFX
+Scene 5: [Visual] King [Caption] CTA 대사
+===`;
+
+  // 추가 요구사항 조합
+  let extras='';
+  if(intent) extras+='
+핵심 내용/의도: '+intent;
+  if(hookLine) extras+='
+훅 첫 대사 아이디어: '+hookLine;
+  if(skit) extras+='
+상황극 설정: '+skit;
+  if(expression) extras+='
+가르칠 핵심 표현: '+expression;
+  if(cta) extras+='
+CTA 방향: '+cta;
+  if(market) extras+='
+시장 조사 메모: '+market;
+
   const sys=isEditor?
     `Henry Ahn 한국어 학습 채널 편집자용 대본 전문가.
-캐릭터: King Sejong(곤룡포)/White Shirt(로컬)/Black Shirt(관광객)/Blue Shirt(학습자)
-SFX: Ding!(정답) / Tick-Tock(2.5초 정지) / FAST ZOOM-IN
-구조: Editor Quick Guide -> 씬별 [Visual]+[Caption]+[SFX] -> Outro CTA
-영어 대본. 한국어 표현은 한글+영어 병기.${market?'\n시장조사: '+market:''}`:
-    isSelf?`Henry Ahn Self-edit 숏폼 대본. 7-10줄 대사만.
-구조: 1.훅 2-4.틀린상황극 5.곤룡포 NOOOO 6-7.올바른표현 8.CTA`:
+채널: Henry Ahn | 타겟: 외국인(영어권) | 언어: 영어 | 한국어 표현은 한글+영어 병기
+
+캐릭터:
+- 곤룡포(King Sejong): 궁궐/서재 배경. 설명, 개입, NOOOO 담당
+- White Shirt: 스트리트. 로컬 한국인
+- Black Shirt: 스트리트. 외국인 관광객
+- Blue Shirt: 스트리트. 외국인 학습자
+
+SFX: Ding!(정답) / Tick-Tock(2.5초 정지) / FAST ZOOM-IN / 딩동댕
+${REF}
+위 형식을 반드시 따라 편집자용 대본 1개를 작성하라.${extras?'
+
+추가 요구사항:'+extras:''}`:
+    isSelf?
+    `Henry Ahn 한국어 학습 채널 Self-edit 숏폼 대본 전문가.
+채널: Henry Ahn | 타겟: 외국인(영어권) | 언어: 영어+한국어 혼용
+세종대왕은 항상 '곤룡포'로 표기.
+
+${REF}
+위 Self-edit 형식을 반드시 따라 7-10줄 대본을 작성하라. 편집 지시 없이 대사만.${extras?'
+
+추가 요구사항:'+extras:''}`:
     `Henry Ahn 한국어 학습 채널 대본 전문가.
 타겟: 외국인(영어권) | 언어: 영어 | 톤: 밝고 에너지 있게
-Version A/B/C 3개 출력. 각: [훅]+[본문]+[CTA]+[완주율 팁]
-길이: 15초=50단어/30초=100단어/60초=180단어${market?'\n시장조사: '+market:''}`;
+세종대왕은 항상 '곤룡포'로 표기.
 
-  const prompt=`주제: ${topic}\n훅 방향: ${hookType==='AI 추천'?'Claude가 최적 훅 판단':hookType}\n영상 길이: ${duration}\n출력 모드: ${mode}`;
+Version A/B/C 3개 출력. 각 버전:
+[훅] 1-3초, 스크롤 멈추는 첫 문장
+[본문] 핵심 표현 + 영어 설명 + 예시 (길이에 맞게)
+[CTA] 마지막 2초, 저장/팔로우/댓글 유도
+[완주율 팁] 편집 팁 한 줄
+
+길이: 15초=50단어/30초=100단어/60초=180단어${extras?'
+
+추가 요구사항:'+extras:''}`;
+
+  const prompt=`주제: ${topic}
+훅 방향: ${hookType==='AI 추천'?'주제에 맞는 최적 훅 유형 선택 후 이유 한 줄 표시':hookType}
+영상 길이: ${duration}
+출력 모드: ${mode}`;
 
   try{
     const text=await callClaude(prompt,sys);
@@ -855,6 +958,19 @@ Version A/B/C 3개 출력. 각: [훅]+[본문]+[CTA]+[완주율 팁]
   }catch(e){box.textContent='오류: '+e.message;}
   btn.disabled=false;btn.textContent='다시 생성';
 }
+
+function toggleAdvanced(){
+  const el=document.getElementById('adv-fields');
+  const btn=document.getElementById('adv-toggle-text');
+  if(el.style.display==='none'){
+    el.style.display='block';
+    btn.textContent='- 상세 요구사항 접기';
+  }else{
+    el.style.display='none';
+    btn.textContent='+ 상세 요구사항 입력 (선택)';
+  }
+}
+
 
 // ── 일반 스킬 모달 ──
 function openSkillModal(id){
@@ -893,7 +1009,6 @@ async function runSkill(){
   try{
     const text=await callClaude(prompt);
     box.textContent=text;box._raw=text;
-    document.getElementById('skill-notion').style.display='inline-flex';
   }catch(e){box.textContent='오류: '+e.message;}
   btn.disabled=false;btn.textContent='다시 실행';
 }
@@ -911,119 +1026,11 @@ function copyOut(boxId,btnId){
   btn.textContent='복사됨!';btn.classList.add('copied');
   setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied');},2000);
 }
-async function callNotion(action, payload) {
-  const res = await fetch('/.netlify/functions/notion', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload })
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data;
-}
 
 // ── Storage ──
-// 수정 (이렇게 바꾸세요)
 function loadState(){
-  try{
-    const d=localStorage.getItem(SK);
-    if(d){
-      const p=JSON.parse(d);
-      // 배열은 완전히 교체, 나머지는 병합
-      if(p.tasks)S.tasks=p.tasks;
-      if(p.kc)S.kc=p.kc;
-      if(p.events)S.events=p.events;
-      if(p.sns)S.sns=p.sns;
-      if(p.notes)S.notes=p.notes;
-      if(p.nid)S.nid=p.nid;
-      if(p.eid)S.eid=p.eid;
-      if(p.sid)S.sid=p.sid;
-    }
-  }catch(e){}
+  try{const d=localStorage.getItem(SK);if(d){const p=JSON.parse(d);S={...S,...p};}}catch(e){}
 }
-async function saveReelToNotion() {
-  const box = document.getElementById('reel-box');
-  const topic = document.getElementById('r-topic').value.trim();
-  const mode = getChip('mode-grp');
-  if (!box._raw) return;
-
-  const btn = document.getElementById('reel-notion');
-  btn.textContent = '저장 중...';
-
-  try {
-    const isSelf = mode.includes('Self-edit');
-    const isEditor = mode.includes('편집자');
-
-    let result;
-    if (isSelf) {
-      // Self-edit → KONNECT 페이지 하위에 저장
-      result = await callNotion('create_page', {
-        parent_id: '34fe0a02-5b03-8086-b602-f81c3e3043f6',
-        title: 'Self-Edit. ' + topic,
-        content: box._raw
-      });
-    } else if (isEditor) {
-      // 편집자용 → Social Media Board DB에 저장
-      result = await callNotion('add_to_db', {
-        database_id: '347e0a02-5b03-80a9-8e33-dd59d395e342',
-        title: topic,
-        content: box._raw,
-        status: 'Ready to Post'
-      });
-    } else {
-      // 미리보기 → Social Media Board 하위 페이지로 저장
-      result = await callNotion('create_page', {
-        parent_id: '347e0a02-5b03-80a9-8e33-dd59d395e342',
-        title: '대본 미리보기. ' + topic,
-        content: box._raw
-      });
-    }
-
-    if (result.success) {
-      btn.textContent = '저장됨!';
-      notif('Notion에 저장됐어요!');
-      setTimeout(() => btn.textContent = '📝 Notion 저장', 3000);
-    }
-  } catch(e) {
-    btn.textContent = '저장 실패';
-    notif('오류: ' + e.message);
-    setTimeout(() => btn.textContent = '📝 Notion 저장', 3000);
-  }
-}
-async function saveSkillToNotion(){
-  const box=document.getElementById('skill-box');
-  const title=document.getElementById('skill-title').textContent;
-  if(!box._raw)return;
-  const btn=document.getElementById('skill-notion');
-  btn.textContent='저장 중...';
-  const konnectSkills=['konnect_cardnews','konnect_notice','konnect_seating','konnect_remind','game_idea'];
-  const seoulVibeSkills=['sv_price','sv_gumroad','sv_pdf_plan','sv_caption'];
-  let parentId;
-  if(konnectSkills.includes(currentSkillId)){
-    parentId='34fe0a02-5b03-8086-b602-f81c3e3043f6';
-  }else if(seoulVibeSkills.includes(currentSkillId)){
-    parentId='35fe0a02-5b03-810a-8c53-c84203615116';
-  }else{
-    parentId='347e0a02-5b03-80a9-8e33-dd59d395e342';
-  }
-  try{
-    const result=await callNotion('create_page',{
-      parent_id:parentId,
-      title:title+' — '+new Date().toLocaleDateString('ko-KR'),
-      content:box._raw
-    });
-    if(result.success){
-      btn.textContent='저장됨!';
-      notif('Notion에 저장됐어요!');
-      setTimeout(()=>btn.textContent='📝 Notion 저장',3000);
-    }
-  }catch(e){
-    btn.textContent='저장 실패';
-    notif('오류: '+e.message);
-    setTimeout(()=>btn.textContent='📝 Notion 저장',3000);
-  }
-}
-  
 function saveAll(){
   S.notes.kbrain=document.getElementById('k-brain')?.value||'';
   S.notes.svmemo=document.getElementById('sv-memo')?.value||'';
@@ -1093,10 +1100,10 @@ function rAll(){
   tasks.forEach(t=>el.appendChild(mkTask(t)));
 }
 function ft(f,btn){S.cf=f;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rAll();}
-function toggle(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;render();saveAll();}}
+function toggle(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;render();}}
 function delTask(id){S.tasks=S.tasks.filter(t=>t.id!==id);render();notif('삭제됨');}
-function qadd(){const v=document.getElementById('qi').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:document.getElementById('qcat').value,today:true,done:false});document.getElementById('qi').value='';render();saveAll();notif('추가됨');}
-function qaddD(){const v=document.getElementById('qi-d').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:'기타',today:true,done:false});document.getElementById('qi-d').value='';render();saveAll();notif('추가됨');}
+function qadd(){const v=document.getElementById('qi').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:document.getElementById('qcat').value,today:true,done:false});document.getElementById('qi').value='';render();notif('추가됨');}
+function qaddD(){const v=document.getElementById('qi-d').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:'기타',today:true,done:false});document.getElementById('qi-d').value='';render();notif('추가됨');}
 
 function rKC(){
   const el=document.getElementById('k-checks');if(!el)return;el.innerHTML='';
