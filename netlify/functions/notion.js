@@ -3,6 +3,22 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
+  // 2000자 제한으로 내용 분할
+  function splitContent(content) {
+    if (!content) return [{ object:'block', type:'paragraph', paragraph:{ rich_text:[{ text:{ content:'' } }] } }];
+    const chunks = [];
+    let i = 0;
+    while (i < content.length) {
+      chunks.push({
+        object: 'block',
+        type: 'paragraph',
+        paragraph: { rich_text: [{ text: { content: content.slice(i, i + 1999) } }] }
+      });
+      i += 1999;
+    }
+    return chunks;
+  }
+
   const NOTION_TOKEN = process.env.NOTION_TOKEN;
   if (!NOTION_TOKEN) {
     return { statusCode: 200, body: JSON.stringify({ error: 'Notion 토큰이 없습니다' }) };
@@ -45,15 +61,7 @@ exports.handler = async (event) => {
               title: [{ text: { content: title || '제목 없음' } }]
             }
           },
-          children: [
-            {
-              object: 'block',
-              type: 'paragraph',
-              paragraph: {
-                rich_text: [{ text: { content: content || '' } }]
-              }
-            }
-          ]
+          children: splitContent(content)
         })
       });
 
@@ -102,15 +110,7 @@ exports.handler = async (event) => {
               select: { name: status || 'Draft' }
             }
           },
-          children: [
-            {
-              object: 'block',
-              type: 'paragraph',
-              paragraph: {
-                rich_text: [{ text: { content: content || '' } }]
-              }
-            }
-          ]
+          children: splitContent(content)
         })
       });
 
