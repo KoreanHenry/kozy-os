@@ -6,7 +6,12 @@ exports.handler = async (event) => {
   const { system, prompt, max_tokens = 1500 } = JSON.parse(event.body || '{}');
 
   if (!prompt) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'prompt required' }) };
+    return { statusCode: 400, body: JSON.stringify({ text: 'prompt가 없습니다' }) };
+  }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return { statusCode: 200, body: JSON.stringify({ text: '오류: API 키가 없습니다. Netlify 환경변수를 확인해주세요.' }) };
   }
 
   try {
@@ -21,14 +26,24 @@ exports.handler = async (event) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify(body)
     });
 
     const data = await res.json();
-    const text = data.content?.map(b => b.text || '').join('') || '';
+
+    // API 오류 상세 반환
+    if (data.error) {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: 'API 오류: ' + data.error.type + ' — ' + data.error.message })
+      };
+    }
+
+    const text = data.content?.map(b => b.text || '').join('') || '(응답 없음)';
 
     return {
       statusCode: 200,
@@ -37,8 +52,8 @@ exports.handler = async (event) => {
     };
   } catch (err) {
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message })
+      statusCode: 200,
+      body: JSON.stringify({ text: '서버 오류: ' + err.message })
     };
   }
 };
