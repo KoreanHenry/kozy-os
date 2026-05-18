@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kozy OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0c;--s1:#111114;--s2:#18181c;--s3:#1e1e24;
+  --b1:rgba(255,255,255,.06);--b2:rgba(255,255,255,.1);--b3:rgba(255,255,255,.15);
+  --t1:#eeeee8;--t2:#888880;--t3:#444440;
+  --green:#4ade80;--gdim:rgba(74,222,128,.1);--gborder:rgba(74,222,128,.25);
+  --red:#f87171;--rdim:rgba(248,113,113,.1);--rborder:rgba(248,113,113,.25);
+  --amber:#f59e0b;--adim:rgba(245,158,11,.1);--aborder:rgba(245,158,11,.25);
+  --purple:#a78bfa;--pdim:rgba(167,139,250,.1);--pborder:rgba(167,139,250,.25);
+  --blue:#60a5fa;--bdim2:rgba(96,165,250,.1);
+  --coral:#fb923c;--cdim:rgba(251,146,60,.1);
+  --r:10px;--rsm:6px;
+  --font:'Pretendard',sans-serif;--mono:'DM Mono',monospace;
+}
+body{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg);min-height:100vh;line-height:1.6}
+
+/* Layout */
+.app{display:grid;grid-template-columns:200px 1fr;min-height:100vh}
+
+/* Sidebar */
+.sb{background:var(--s1);border-right:1px solid var(--b1);padding:14px 8px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.logo{font-family:var(--mono);font-size:15px;font-weight:500;padding:8px 12px 16px;border-bottom:1px solid var(--b1);margin-bottom:10px;letter-spacing:-.5px}
+.logo em{color:var(--green);font-style:normal}
+.ng{font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;padding:12px 12px 4px}
+.nb{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:var(--rsm);cursor:pointer;color:var(--t2);font-size:12px;border:none;background:none;width:100%;text-align:left;transition:all .15s}
+.nb:hover{background:var(--s2);color:var(--t1)}.nb.on{background:var(--gdim);color:var(--green);border:1px solid var(--gborder)}
+.nd{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:.7}
+.sb-btm{margin-top:auto;padding:14px 12px 4px;border-top:1px solid var(--b1)}
+.conn{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t3);padding:3px 0}
+.cdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pk 2s infinite}
+@keyframes pk{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* Main */
+.main{display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:0;z-index:10}
+.ptitle{font-size:14px;font-weight:500;font-family:var(--mono)}
+.tbr{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--rsm);border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--font);transition:all .15s;white-space:nowrap}
+.btn:hover{color:var(--t1);border-color:var(--b3)}
+.btn-g{background:var(--gdim);border-color:var(--gborder);color:var(--green)}.btn-g:hover{background:rgba(74,222,128,.15)}
+.btn-r{background:var(--rdim);border-color:var(--rborder);color:var(--red)}
+.btn-a{background:var(--adim);border-color:var(--aborder);color:var(--amber)}
+
+/* Content */
+.content{padding:20px;flex:1;max-width:1200px;width:100%}
+.sec{display:none}.sec.on{display:block}
+
+/* Stats */
+.stats{display:grid;gap:10px;margin-bottom:16px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px}
+.sl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;font-family:var(--mono)}
+.sv{font-size:22px;font-weight:500;font-family:var(--mono);line-height:1.2}
+.ss{font-size:11px;color:var(--t3);margin-top:3px}
+.prog{height:2px;background:var(--b1);border-radius:1px;margin-top:8px;overflow:hidden}
+.pf{height:100%;border-radius:1px;transition:width .5s}
+
+/* Cards */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--b1)}
+.ct{font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px}
+.cb2{padding:12px 16px}
+.badge{display:inline-flex;font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+.bg{background:var(--gdim);color:var(--green);border:1px solid var(--gborder)}
+.ba{background:var(--adim);color:var(--amber);border:1px solid var(--aborder)}
+.bp{background:var(--pdim);color:var(--purple);border:1px solid var(--pborder)}
+.bb{background:var(--bdim2);color:var(--blue)}
+.br2{background:var(--rdim);color:var(--red);border:1px solid var(--rborder)}
+
+/* Live badge */
+.live{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);background:var(--gdim);padding:2px 8px;border-radius:20px;border:1px solid var(--gborder)}
+.ldot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pk 2s infinite}
+
+/* Brief */
+.brief{background:linear-gradient(135deg,var(--gdim),var(--bdim2));border:1px solid var(--b1);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.bl{font-size:12px;color:var(--t2);padding:3px 0;display:flex;gap:10px}
+
+/* Week Calendar */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+.day-col{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s}
+.day-col:hover{border-color:var(--b2)}.day-col.today{border-color:var(--gborder)}
+.day-col.selected{border-color:var(--green);background:var(--gdim)}
+.day-col.sunday .day-name,.day-col.sunday .day-num{color:var(--red)}
+.day-hdr{padding:8px;border-bottom:1px solid var(--b1);text-align:center}
+.day-name{font-size:10px;color:var(--t3);font-weight:500;font-family:var(--mono)}
+.day-num{font-size:16px;font-weight:500;font-family:var(--mono);color:var(--t1);line-height:1.3}
+.day-col.today .day-num{color:var(--green)}
+.day-body{padding:6px 8px;min-height:56px}
+.day-ev{font-size:10px;color:var(--t2);padding:2px 4px;margin-bottom:2px;line-height:1.4;display:flex;gap:3px}
+.day-ev::before{content:'·';flex-shrink:0;color:var(--t3)}
+.day-ev.konnect::before{color:var(--amber)}.day-ev.sns::before{color:var(--blue)}.day-ev.pdf::before{color:var(--purple)}
+.day-detail{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px;margin-top:10px;display:none}
+.day-detail.open{display:block}
+
+/* Task */
+.task{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1);cursor:pointer;position:relative}
+.task:last-child{border-bottom:none}
+.task:hover{margin:0 -16px;padding:8px 16px;background:var(--s2);border-radius:var(--rsm)}
+.tcb{width:15px;height:15px;min-width:15px;border:1px solid var(--b2);border-radius:4px;display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:9px;cursor:pointer;transition:all .15s}
+.tcb.done{background:var(--green);border-color:var(--green);color:#0a1a0a}
+.tt{font-size:13px;flex:1}.tt.done{color:var(--t3);text-decoration:line-through}
+.tm{font-size:10px;color:var(--t3);margin-top:2px;display:flex;gap:6px}
+.tact{display:none;gap:4px}.task:hover .tact{display:flex}
+.ta{background:none;border:1px solid var(--b1);border-radius:3px;color:var(--t3);cursor:pointer;font-size:10px;padding:1px 6px;font-family:var(--font)}
+.ta:hover{color:var(--t1)}.ta.e{color:var(--blue)}.ta.d{color:var(--red)}
+
+/* Chk */
+.chk-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px;border-bottom:1px solid var(--b1);position:relative}
+.chk-item:last-child{border-bottom:none}
+.chk-item:hover .tact{display:flex}
+
+/* KV */
+.kv{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--b1)}
+.kv:last-child{border-bottom:none}.kk{color:var(--t3)}.kv2{font-weight:500}
+
+/* Add row */
+.arow{display:flex;gap:6px;padding:10px 16px;border-top:1px solid var(--b1);background:var(--s2)}
+.inp{background:var(--s1);border:1px solid var(--b2);border-radius:var(--rsm);color:var(--t1);padding:6px 10px;font-size:12px;font-family:var(--font);outline:none}
+.inp:focus{border-color:var(--gborder)}
+.sel{background:var(--s1);border:1px solid var(--b2);border-radius:var(--rsm);color:var(--t2);padding:6px 8px;font-size:11px;font-family:var(--font);outline:none;cursor:pointer}
+
+/* Skills */
+.skills{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.skill{background:var(--s2);border:1px solid var(--b1);border-radius:var(--rsm);color:var(--t2);padding:10px 12px;font-size:11px;cursor:pointer;text-align:left;font-family:var(--font);transition:all .15s;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.skill:hover{border-color:var(--b2);color:var(--t1);background:var(--s3)}
+.skill.ai{border-color:var(--rborder);background:var(--rdim);color:var(--red)}
+.skill.ai:hover{background:rgba(248,113,113,.15)}
+
+/* Tabs */
+.tabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:5px 12px;border-radius:20px;border:1px solid var(--b1);background:none;color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--font);transition:all .15s}
+.tab:hover{color:var(--t1)}.tab.on{background:var(--gdim);border-color:var(--gborder);color:var(--green)}
+
+/* Note */
+.enote{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rsm);color:var(--t1);font-size:12px;font-family:var(--font);padding:10px 12px;resize:vertical;outline:none;line-height:1.7;min-height:70px}
+.enote:focus{border-color:var(--gborder)}
+
+/* Ev row */
+.ev-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--b1);font-size:12px;position:relative}
+.ev-row:last-child{border-bottom:none}
+.ev-row:hover{margin:0 -16px;padding:8px 16px;background:var(--s2);border-radius:var(--rsm)}
+.ev-row:hover .tact{display:flex}
+
+/* Cal */
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cd{text-align:center;padding:6px 2px;border-radius:var(--rsm);font-size:11px;position:relative;cursor:pointer;font-family:var(--mono)}
+.cd:hover:not(.ch2){background:var(--s2)}
+.ch2{color:var(--t3);font-size:10px;font-weight:500;cursor:default}
+.ct2{background:var(--gdim);color:var(--green);font-weight:600;border:1px solid var(--gborder)}
+.ce::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--amber)}
+.co{color:var(--t3);opacity:.3}
+
+/* Applicant */
+.app2{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--b1);font-size:12px}
+.app2:last-child{border-bottom:none}
+.av{width:30px;height:30px;border-radius:50%;background:var(--adim);border:1px solid var(--aborder);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--amber);flex-shrink:0;font-family:var(--mono)}
+
+/* Agrid */
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.acard{background:var(--s2);border:1px solid var(--b1);border-radius:var(--r);padding:14px;cursor:pointer;transition:all .15s}
+.acard:hover{border-color:var(--b2);background:var(--s3)}
+.aname{font-size:12px;font-weight:500;margin-bottom:4px}
+.adesc{font-size:11px;color:var(--t3);line-height:1.5}
+.atags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.atag{font-size:10px;color:var(--t3);background:var(--s1);border:1px solid var(--b1);border-radius:3px;padding:1px 6px;font-family:var(--mono)}
+
+/* ── 스킬 실행 모달 ── */
+.mw{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:20px}
+.mw.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--b2);border-radius:14px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:24px;animation:su .25s cubic-bezier(.34,1.56,.64,1)}
+@keyframes su{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+.m-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.m-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.m-icon.red{background:linear-gradient(135deg,var(--red),var(--coral))}
+.m-icon.green{background:linear-gradient(135deg,var(--green),#22d3ee)}
+.m-title{font-size:15px;font-weight:600;margin-left:10px}
+.m-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.m-close{width:30px;height:30px;background:var(--s3);border:1px solid var(--b2);border-radius:7px;color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-family:var(--font)}
+.m-close:hover{color:var(--t1)}
+.mf{margin-bottom:16px}
+.ml{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;display:flex;align-items:center;gap:6px;font-family:var(--mono)}
+.m-badge{font-size:10px;font-weight:400;background:var(--s3);padding:2px 7px;border-radius:4px;color:var(--t3);text-transform:none;letter-spacing:0}
+.mi{width:100%;background:var(--s3);border:1px solid var(--b2);border-radius:var(--rsm);color:var(--t1);padding:9px 12px;font-size:12px;font-family:var(--font);outline:none}
+.mi:focus{border-color:var(--rborder)}
+.chip-grp{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:7px 14px;background:var(--s3);border:1px solid var(--b2);border-radius:7px;color:var(--t2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;user-select:none}
+.chip:hover{color:var(--t1)}.chip.on{background:var(--rdim);border-color:var(--rborder);color:var(--red)}
+.chip.on.green-chip{background:var(--gdim);border-color:var(--gborder);color:var(--green)}
+.divider{height:1px;background:var(--b1);margin:16px 0}
+.gen-btn{width:100%;padding:13px;border:none;border-radius:var(--r);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:4px}
+.gen-btn.red{background:linear-gradient(135deg,var(--red),var(--coral))}
+.gen-btn.green{background:linear-gradient(135deg,var(--green),#22d3ee);color:#0a1a0a}
+.gen-btn:hover{opacity:.9;transform:translateY(-1px)}
+.gen-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Output */
+.out-wrap{margin-top:18px;display:none}.out-wrap.show{display:block}
+.out-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.out-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;font-family:var(--mono)}
+.out-actions{display:flex;gap:6px}
+.copy-btn{padding:5px 12px;background:var(--s3);border:1px solid var(--b2);border-radius:5px;color:var(--t3);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.copy-btn:hover{color:var(--t1)}.copy-btn.copied{color:var(--green);border-color:var(--gborder)}
+.notion-btn{padding:5px 12px;background:var(--pdim);border:1px solid var(--pborder);border-radius:5px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);display:none}
+.notion-btn:hover{background:rgba(167,139,250,.15)}
+.out-box{background:var(--s3);border:1px solid var(--b1);border-radius:var(--rsm);padding:14px;font-size:12px;line-height:1.8;color:var(--t2);white-space:pre-wrap;word-break:break-word;max-height:360px;overflow-y:auto;font-family:var(--mono)}
+.loading-dots{display:flex;align-items:center;gap:8px;color:var(--t3);font-size:12px;padding:14px 0;font-family:var(--mono)}
+.da span{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--red);animation:bounce .9s infinite;margin:0 2px}
+.da span:nth-child(2){animation-delay:.2s}.da span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(.5);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* Gen modal */
+.gen-modal{background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:20px;width:340px;max-width:92vw;max-height:92vh;overflow-y:auto}
+.mtitle{font-size:13px;font-weight:500;margin-bottom:14px}
+.mf2{margin-bottom:10px}.ml2{font-size:11px;color:var(--t3);margin-bottom:4px;font-family:var(--mono)}
+.mi2{width:100%;background:var(--s3);border:1px solid var(--b2);border-radius:var(--rsm);color:var(--t1);padding:8px 10px;font-size:12px;font-family:var(--font);outline:none}
+.mi2:focus{border-color:var(--gborder)}
+.mbtns{display:flex;gap:6px;justify-content:flex-end;margin-top:14px}
+
+/* Notif */
+.notif{position:fixed;bottom:20px;right:20px;background:var(--s2);border:1px solid var(--green);border-radius:var(--r);padding:9px 16px;font-size:12px;color:var(--green);z-index:200;transform:translateY(50px);opacity:0;transition:all .3s;pointer-events:none;font-family:var(--mono)}
+.notif.show{transform:translateY(0);opacity:1}
+
+.div2{border:none;border-top:1px solid var(--b1);margin:12px 0}
+.sl2{font-size:10px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;font-family:var(--mono)}
+.hint{font-size:10px;color:var(--t3);margin-left:5px;font-weight:400}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div class="app">
+<nav class="sb">
+  <div class="logo">Kozy<em>OS</em> <span style="font-size:10px;color:var(--t3);font-weight:400">web</span></div>
+  <div class="ng">워크스페이스</div>
+  <button class="nb on" onclick="go('dashboard')"><span class="nd"></span>대시보드</button>
+  <button class="nb" onclick="go('tasks')"><span class="nd"></span>업무 관리</button>
+  <button class="nb" onclick="go('calendar')"><span class="nd"></span>일정</button>
+  <div class="ng">프로젝트</div>
+  <button class="nb" onclick="go('konnect')"><span class="nd" style="color:var(--amber)"></span>KONNECT</button>
+  <button class="nb" onclick="go('seoulvibe')"><span class="nd" style="color:var(--purple)"></span>Seoul Vibe</button>
+  <button class="nb" onclick="go('sns')"><span class="nd" style="color:var(--blue)"></span>SNS</button>
+  <button class="nb" onclick="go('design')"><span class="nd" style="color:var(--coral)"></span>디자인·마케팅</button>
+  <div class="ng">시스템</div>
+  <button class="nb" onclick="go('agents')"><span class="nd"></span>에이전트</button>
+  <div class="sb-btm">
+    <div id="sdate" style="font-size:10px;color:var(--t3);font-family:var(--mono);margin-bottom:8px"></div>
+    <div class="conn"><span class="cdot"></span>Claude API</div>
+    <div class="conn"><span class="cdot"></span>Notion</div>
+    <div class="conn"><span class="cdot"></span>Google Drive</div>
+    <div class="conn"><span class="cdot"></span>Canva</div>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="topbar">
+    <div class="ptitle" id="ptitle">대시보드</div>
+    <div class="tbr">
+      <span style="font-size:11px;color:var(--t3);font-family:var(--mono)" id="saved-lbl"></span>
+      <button class="btn" onclick="openSkillModal('morning')">☀️ 모닝 브리핑</button>
+      <button class="btn btn-a" onclick="openModal('task')">+ 업무</button>
+      <button class="btn btn-g" onclick="saveAll()">저장</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="sec on" id="sec-dashboard">
+    <div class="brief">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:500">☀️ 오늘의 브리핑</div>
+        <button class="btn btn-g" onclick="openSkillModal('morning')">새 브리핑 생성 ↗</button>
+      </div>
+      <div id="brief-content">
+        <div class="bl"><span>📅</span><span>KONNECT D-13 · 신청자 3명 확정</span></div>
+        <div class="bl"><span>🎯</span><span>오늘 우선순위: 유료 PDF 초안, 릴스 대본, 자리배치</span></div>
+        <div class="bl"><span>⚠️</span><span>긴급: Seoul Vibe 가격 미확정 + Gumroad 미설정</span></div>
+        <div class="bl"><span>💡</span><span>대기 31명 중 미신청자 D-7 리마인드 추천</span></div>
+      </div>
+    </div>
+
+    <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat"><div class="sl">오늘 할 일</div><div class="sv" style="color:var(--green)" id="s-today">0</div><div class="ss" id="s-tdone">-</div><div class="prog"><div class="pf" style="background:var(--green)" id="p-today"></div></div></div>
+      <div class="stat"><div class="sl">KONNECT</div><div class="sv" style="color:var(--amber)" id="s-dday">-</div><div class="ss">5/30 금요일</div></div>
+      <div class="stat"><div class="sl">신청자</div><div class="sv" style="color:var(--green)">3<span style="font-size:14px;color:var(--t3)">명</span></div><div class="ss">대기 31명</div></div>
+      <div class="stat"><div class="sl">전체 업무</div><div class="sv" style="color:var(--blue)" id="s-all">0</div><div class="ss" id="s-asub">-</div></div>
+    </div>
+
+    <!-- 주간 캘린더 -->
+    <div class="card">
+      <div class="ch">
+        <div class="ct">이번 주 <span id="week-range" style="font-size:11px;color:var(--t3);font-weight:400;margin-left:4px;font-family:var(--mono)"></span></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" onclick="changeWeek(-1)">‹</button>
+          <button class="btn btn-g" onclick="changeWeek(0)">이번 주</button>
+          <button class="btn" onclick="changeWeek(1)">›</button>
+          <button class="btn btn-a" onclick="openModal('event')">+ 일정</button>
+        </div>
+      </div>
+      <div class="cb2">
+        <div class="week-grid" id="week-grid"></div>
+        <div class="day-detail" id="day-detail">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <span style="font-size:12px;font-weight:500;font-family:var(--mono)" id="detail-title"></span>
+            <button class="btn" onclick="closeDetail()">×</button>
+          </div>
+          <div id="detail-content"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ct">오늘 커맨드</div><span class="badge bg" id="today-pct">0%</span></div>
+        <div class="cb2" id="today-list" style="max-height:200px;overflow-y:auto"></div>
+        <div class="arow">
+          <input class="inp" id="qi-d" placeholder="오늘 업무 빠른 추가..." style="flex:1" onkeydown="if(event.key==='Enter')qaddD()">
+          <button class="btn btn-g" onclick="qaddD()">+</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">스킬 빠른 실행</div></div>
+        <div class="cb2">
+          <div class="skills">
+            <button class="skill ai" onclick="openSkillModal('reel')"><span style="font-size:14px">🎬</span>릴스 대본 생성<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+            <button class="skill ai" onclick="openSkillModal('morning')"><span style="font-size:14px">☀️</span>모닝 브리핑<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+            <button class="skill" onclick="openSkillModal('konnect_notice')"><span style="font-size:14px">💬</span>D-1 공지 카톡</button>
+            <button class="skill" onclick="openSkillModal('caption')"><span style="font-size:14px">✍️</span>캡션 + CTA</button>
+            <button class="skill" onclick="openSkillModal('market')"><span style="font-size:14px">🔍</span>시장 조사</button>
+            <button class="skill ai" onclick="openSkillModal('evening')"><span style="font-size:14px">🌙</span>이브닝 리뷰<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS -->
+  <div class="sec" id="sec-tasks">
+    <div class="tabs">
+      <button class="tab on" onclick="ft('all',this)">전체</button>
+      <button class="tab" onclick="ft('today',this)">오늘</button>
+      <button class="tab" onclick="ft('KONNECT',this)">KONNECT</button>
+      <button class="tab" onclick="ft('PDF',this)">Seoul Vibe</button>
+      <button class="tab" onclick="ft('SNS',this)">SNS</button>
+      <button class="tab" onclick="ft('디자인',this)">디자인</button>
+      <button class="tab" onclick="ft('퍼널',this)">퍼널</button>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">업무 목록 <span class="hint">— 마우스 올리면 수정/삭제</span></div><button class="btn btn-g" onclick="openModal('task')">+ 추가</button></div>
+      <div class="cb2" id="all-list" style="max-height:500px;overflow-y:auto"></div>
+      <div class="arow">
+        <input class="inp" id="qi" placeholder="빠른 추가..." style="flex:1" onkeydown="if(event.key==='Enter')qadd()">
+        <select class="sel" id="qcat"><option>KONNECT</option><option>PDF</option><option>SNS</option><option>디자인</option><option>퍼널</option><option>기타</option></select>
+        <button class="btn btn-g" onclick="qadd()">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="sec" id="sec-calendar">
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ct" id="cal-title">2026년 5월</div><div style="display:flex;gap:5px"><button class="btn" onclick="cm(-1)">‹</button><button class="btn" onclick="cm(1)">›</button><button class="btn btn-g" onclick="openModal('event')">+ 일정</button></div></div>
+        <div class="cb2" id="cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">전체 일정</div></div>
+        <div class="cb2" id="ev-list" style="max-height:360px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KONNECT -->
+  <div class="sec" id="sec-konnect">
+    <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat"><div class="sl">D-day</div><div class="sv" style="color:var(--amber)" id="k-dday">-</div><div class="ss">5/30</div></div>
+      <div class="stat"><div class="sl">확정 신청자</div><div class="sv" style="color:var(--green)">3<span style="font-size:14px;color:var(--t3)">명</span></div></div>
+      <div class="stat"><div class="sl">대기 리스트</div><div class="sv" style="color:var(--blue)">31<span style="font-size:14px;color:var(--t3)">명</span></div></div>
+      <div class="stat"><div class="sl">준비 완료</div><div class="sv" style="color:var(--green)" id="k-prep">-</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ct">운영 체크리스트</div><button class="btn btn-g" onclick="addKC()">+ 항목</button></div>
+        <div class="cb2" id="k-checks"></div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">5/30 확정 신청자 <span class="live"><span class="ldot"></span>Drive</span></div></div>
+        <div class="cb2">
+          <div class="app2"><div class="av">이</div><div style="flex:1"><div>이승현</div><div style="font-size:11px;color:var(--t3)">한국 🇰🇷 · 남 · 첫 참여</div></div><span class="badge bg">확정</span></div>
+          <div class="app2"><div class="av">HA</div><div style="flex:1"><div>Hayat</div><div style="font-size:11px;color:var(--t3)">프랑스 🇫🇷 · 여 · 1~2회</div></div><span class="badge bg">확정</span></div>
+          <div class="app2"><div class="av">박</div><div style="flex:1"><div>박정원</div><div style="font-size:11px;color:var(--t3)">한국 🇰🇷 · ⚠️ 얼굴노출 비동의</div></div><span class="badge bg">확정</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">KONNECT 스킬</div></div>
+      <div class="cb2">
+        <div class="skills">
+          <button class="skill ai" onclick="openSkillModal('konnect_cardnews')"><span style="font-size:14px">🎨</span>카드뉴스 기획<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('konnect_notice')"><span style="font-size:14px">💬</span>D-1 공지 카톡<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('konnect_seating')"><span style="font-size:14px">🪑</span>자리배치 추천<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('konnect_remind')"><span style="font-size:14px">📢</span>대기 리스트 리마인드<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">팀 게임 메모</div><button class="btn btn-g" onclick="openSkillModal('game_idea')">AI 아이디어 ↗</button></div>
+      <div class="cb2">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"><span class="badge ba">Draw the Lie</span><span class="badge ba">The Zero Percent</span></div>
+        <textarea class="enote" id="k-brain" placeholder="게임 아이디어 메모..." rows="3" oninput="autoSave('kbrain',this.value)"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEOUL VIBE -->
+  <div class="sec" id="sec-seoulvibe">
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><div class="sl">진행률</div><div class="sv" style="color:var(--purple)">72%</div><div class="prog"><div class="pf" style="background:var(--purple);width:72%"></div></div></div>
+      <div class="stat"><div class="sl">FREE1WEEK</div><div class="sv" style="color:var(--green)">완료</div></div>
+      <div class="stat"><div class="sl">Gumroad</div><div class="sv" style="color:var(--red)">미설정</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="ch"><div class="ct">상품 구조</div></div>
+        <div class="cb2">
+          <div class="kv"><span class="kk">Basic</span><span class="kv2">PDF + Audio + QR</span></div>
+          <div class="kv"><span class="kk">Premium</span><span class="kv2">Basic + 피드백</span></div>
+          <div class="kv"><span class="kk">가격</span><span class="kv2" style="color:var(--red)">미확정</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><div class="ct">진행 메모</div></div>
+        <div class="cb2"><textarea class="enote" id="sv-memo" placeholder="진행 상황, 아이디어..." rows="5" oninput="autoSave('svmemo',this.value)"></textarea></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Seoul Vibe 스킬</div></div>
+      <div class="cb2">
+        <div class="skills">
+          <button class="skill ai" onclick="openSkillModal('sv_price')"><span style="font-size:14px">💸</span>가격 구조 판단<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('sv_gumroad')"><span style="font-size:14px">📝</span>Gumroad 영어 문구<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('sv_pdf_plan')"><span style="font-size:14px">📄</span>PDF 페이지 기획<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('sv_caption')"><span style="font-size:14px">🎨</span>홍보 캡션<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SNS -->
+  <div class="sec" id="sec-sns">
+    <div class="stats" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat"><div class="sl">이번 주 업로드</div><div class="sv" style="color:var(--blue)" id="sns-up">0/5</div><div class="prog"><div class="pf" style="background:var(--blue)" id="p-sns"></div></div></div>
+      <div class="stat"><div class="sl">주간 목표</div><div class="sv" style="color:var(--t2)">5</div></div>
+      <div class="stat"><div class="sl">편집자</div><div class="sv" style="color:var(--purple)">3</div><div class="ss">→ 롱폼 전환 중</div></div>
+      <div class="stat"><div class="sl">직접 편집</div><div class="sv" style="color:var(--coral)">2+</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">업로드 기록</div><button class="btn btn-g" onclick="openModal('sns')">+ 추가</button></div>
+      <div class="cb2" id="sns-list" style="max-height:160px;overflow-y:auto"></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">이번 주 기획</div><button class="btn btn-g" onclick="openSkillModal('sns_strategy')">AI 주제 추천 ↗</button></div>
+      <div class="cb2">
+        <div class="sl2">요구사항 메모</div>
+        <textarea class="enote" id="sns-req" placeholder="훅 방향, 주제, 구성..." rows="2" oninput="autoSave('snsreq',this.value)"></textarea>
+        <div class="div2"></div>
+        <div class="sl2">시장 조사 메모</div>
+        <textarea class="enote" id="sns-mkt" placeholder="잘 되는 채널 트렌드..." rows="2" oninput="autoSave('snsmkt',this.value)"></textarea>
+        <div style="display:flex;gap:6px;margin-top:10px;justify-content:flex-end">
+          <button class="btn" onclick="openSkillModal('market')">시장 조사 ↗</button>
+          <button class="btn btn-r" onclick="openReelModal()">🎬 대본 생성 ↗</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">SNS 스킬</div></div>
+      <div class="cb2">
+        <div class="skills">
+          <button class="skill ai" onclick="openReelModal()"><span style="font-size:14px">🎬</span>릴스 대본 생성<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('caption')"><span style="font-size:14px">✍️</span>캡션 + CTA<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('market')"><span style="font-size:14px">🔍</span>시장 조사<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+          <button class="skill ai" onclick="openSkillModal('content_cal')"><span style="font-size:14px">📅</span>콘텐츠 캘린더<span style="font-size:9px;background:rgba(248,113,113,.2);padding:1px 5px;border-radius:3px;margin-left:4px">AI</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESIGN -->
+  <div class="sec" id="sec-design">
+    <div class="card">
+      <div class="ch"><div class="ct">🎨 디자인 스킬</div><span style="font-size:11px;color:var(--t3)">Canva 연동 예정</span></div>
+      <div class="cb2">
+        <div class="sl2">요청사항</div>
+        <textarea class="enote" id="design-req" placeholder="예: 한국 편의점 표현, 외국인 타겟, 밝고 귀여운 톤" rows="2"></textarea>
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+          <button class="btn ai" style="background:var(--rdim);border-color:var(--rborder);color:var(--red)" onclick="openSkillModal('design_fomo')">⚡ FOMO+사회적증거</button>
+          <button class="btn ai" style="background:var(--rdim);border-color:var(--rborder);color:var(--red)" onclick="openSkillModal('design_color')">🎨 색채 심리</button>
+          <button class="btn ai" style="background:var(--rdim);border-color:var(--rborder);color:var(--red)" onclick="openSkillModal('design_anchor')">🧠 앵커링</button>
+          <button class="btn ai" style="background:var(--rdim);border-color:var(--rborder);color:var(--red)" onclick="openSkillModal('design_eye')">👁️ 시선 유도</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AGENTS -->
+  <div class="sec" id="sec-agents">
+    <div class="agrid">
+      <div class="acard" onclick="openSkillModal('market')"><div class="aname">🔍 시장 조사</div><div class="adesc">SNS 트렌드, 한국어 교육 시장 분석</div><div class="atags"><span class="atag">트렌드</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openReelModal()"><div class="aname">🎬 릴스 대본</div><div class="adesc">요구사항+시장조사 기반 대본 3버전 + Notion 저장</div><div class="atags"><span class="atag">편집자용</span><span class="atag">Self-edit</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('caption')"><div class="aname">✍️ 캡션 + CTA</div><div class="adesc">인스타그램 캡션 작성</div><div class="atags"><span class="atag">캡션</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('konnect_notice')"><div class="aname">💬 KONNECT 공지</div><div class="adesc">D-1 카카오톡 한영 버전</div><div class="atags"><span class="atag">카톡</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('morning')"><div class="aname">☀️ 모닝 브리핑</div><div class="adesc">오늘 일정 + 우선순위 자동 정리</div><div class="atags"><span class="atag">브리핑</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('evening')"><div class="aname">🌙 이브닝 리뷰</div><div class="adesc">오늘 완료·미완료 정리 + 내일 추천</div><div class="atags"><span class="atag">리뷰</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('sv_price')"><div class="aname">💸 가격 구조 판단</div><div class="adesc">Seoul Vibe Basic/Premium 가격 전략</div><div class="atags"><span class="atag">퍼널</span><span class="atag">AI</span></div></div>
+      <div class="acard" onclick="openSkillModal('sv_gumroad')"><div class="aname">📝 Gumroad 문구</div><div class="adesc">영어 판매 페이지 문구 작성</div><div class="atags"><span class="atag">퍼널</span><span class="atag">AI</span></div></div>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ── 릴스 대본 모달 ── -->
+<div class="mw" id="reel-mw">
+  <div class="modal">
+    <div class="m-hdr">
+      <div style="display:flex;align-items:center">
+        <div class="m-icon red">🎬</div>
+        <div style="margin-left:12px">
+          <div class="m-title">릴스 대본 생성</div>
+          <div class="m-sub">Henry Ahn 채널 전용 스킬</div>
+        </div>
+      </div>
+      <button class="m-close" onclick="closeReelModal()">×</button>
+    </div>
+    <div class="mf">
+      <div class="ml">주제 <span style="color:var(--red)">*</span></div>
+      <input class="mi" id="r-topic" placeholder="예: 카페 주문, 존댓말 vs 반말...">
+    </div>
+    <div class="mf">
+      <div class="ml">훅 방향 <span class="m-badge">하나 선택</span></div>
+      <div class="chip-grp" id="hook-grp">
+        <div class="chip on" onclick="selectChip(this,'hook-grp')">🤖 AI 추천</div>
+        <div class="chip" onclick="selectChip(this,'hook-grp')">❓ 질문형</div>
+        <div class="chip" onclick="selectChip(this,'hook-grp')">⚡ 충격통계형</div>
+        <div class="chip" onclick="selectChip(this,'hook-grp')">💭 공감형</div>
+      </div>
+    </div>
+    <div class="mf">
+      <div class="ml">영상 길이</div>
+      <div class="chip-grp" id="dur-grp">
+        <div class="chip" onclick="selectChip(this,'dur-grp')">15초</div>
+        <div class="chip on" onclick="selectChip(this,'dur-grp')">30초</div>
+        <div class="chip" onclick="selectChip(this,'dur-grp')">60초</div>
+      </div>
+    </div>
+    <div class="mf">
+      <div class="ml">출력 모드</div>
+      <div class="chip-grp" id="mode-grp">
+        <div class="chip on" onclick="selectChip(this,'mode-grp')">👁 미리보기 3버전</div>
+        <div class="chip" onclick="selectChip(this,'mode-grp')">🎬 편집자용</div>
+        <div class="chip" onclick="selectChip(this,'mode-grp')">✂️ Self-edit</div>
+      </div>
+    </div>
+    <div class="mf">
+      <div class="ml">시장 조사 메모 <span class="m-badge">선택사항</span></div>
+      <textarea class="mi" id="r-market" rows="2" placeholder="잘 되는 채널 패턴, 트렌드 메모..."></textarea>
+    </div>
+    <div class="divider"></div>
+    <button class="gen-btn red" id="reel-btn" onclick="generateReel()">✦ 대본 생성하기</button>
+    <div class="out-wrap" id="reel-out">
+      <div class="out-hdr">
+        <span class="out-label">생성된 대본</span>
+        <div class="out-actions">
+          <button class="copy-btn" id="reel-copy" onclick="copyOut('reel-box','reel-copy')">복사</button>
+          <button class="notion-btn" id="reel-notion" onclick="saveReelToNotion()">📝 Notion 저장</button>
+        </div>
+      </div>
+      <div class="out-box" id="reel-box"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── 일반 스킬 실행 모달 ── -->
+<div class="mw" id="skill-mw">
+  <div class="modal">
+    <div class="m-hdr">
+      <div style="display:flex;align-items:center">
+        <div class="m-icon green" id="skill-icon">⚡</div>
+        <div style="margin-left:12px">
+          <div class="m-title" id="skill-title">스킬 실행</div>
+          <div class="m-sub" id="skill-sub">Claude API</div>
+        </div>
+      </div>
+      <button class="m-close" onclick="closeSkillModal()">×</button>
+    </div>
+    <div id="skill-fields"></div>
+    <div class="divider"></div>
+    <button class="gen-btn green" id="skill-btn" onclick="runSkill()">✦ 실행하기</button>
+    <div class="out-wrap" id="skill-out">
+      <div class="out-hdr">
+        <span class="out-label">결과</span>
+        <div class="out-actions">
+          <button class="copy-btn" id="skill-copy" onclick="copyOut('skill-box','skill-copy')">복사</button>
+          <button class="notion-btn" id="skill-notion" onclick="saveSkillToNotion()">📝 Notion 저장</button>
+        </div>
+      </div>
+      <div class="out-box" id="skill-box"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 일반 모달 (task/event/sns) -->
+<div class="mw" id="mw"><div class="gen-modal" id="mc"></div></div>
+<div class="notif" id="notif"></div>
+
+<script>
+// ── 상태 ──
+const SK='kozy-os-web-v1';
+const CATS={KONNECT:'ba',PDF:'bp',SNS:'bb',디자인:'bc',퍼널:'bg',기타:'bb'};
+const TITLES={dashboard:'대시보드',tasks:'업무 관리',calendar:'일정',konnect:'KONNECT',seoulvibe:'Seoul Vibe 101',sns:'SNS',design:'디자인·마케팅',agents:'에이전트'};
+let weekOffset=0,selectedDay=null,currentSkillId=null;
+
+let S={
+  tasks:[
+    {id:1,text:'SNS 촬영 + 편집',cat:'SNS',today:true,done:false},
+    {id:2,text:'KONNECT 자리배치 (3명)',cat:'KONNECT',today:true,done:false},
+    {id:3,text:'Seoul Vibe PDF 초안',cat:'PDF',today:true,done:false},
+    {id:4,text:'Gumroad 문구 확인',cat:'퍼널',today:true,done:false},
+    {id:5,text:'릴스 대본 1편',cat:'SNS',today:true,done:false},
+    {id:6,text:'가격 확정',cat:'퍼널',today:false,done:false},
+    {id:7,text:'D-1 공지 메시지',cat:'KONNECT',today:false,done:false},
+  ],
+  kc:[
+    {id:1,text:'신청 링크 공유',done:true},
+    {id:2,text:'홍보 릴스 업로드',done:false},
+    {id:3,text:'자리배치 확정',done:false},
+    {id:4,text:'대기 리스트 리마인드',done:false},
+    {id:5,text:'D-1 공지',done:false},
+  ],
+  events:[
+    {id:1,date:'2026-05-18',title:'SNS 촬영 + KONNECT 체크',cat:'SNS'},
+    {id:2,date:'2026-05-19',title:'무료 PDF 업로드',cat:'PDF'},
+    {id:3,date:'2026-05-22',title:'✈️ 후쿠오카 출국',cat:'기타'},
+    {id:4,date:'2026-05-23',title:'D-7 리마인드',cat:'KONNECT'},
+    {id:5,date:'2026-05-26',title:'귀국 + 수업',cat:'PDF'},
+    {id:6,date:'2026-05-29',title:'KONNECT 최종 준비',cat:'KONNECT'},
+    {id:7,date:'2026-05-30',title:'🎯 KONNECT 행사 당일',cat:'KONNECT'},
+  ],
+  sns:[{id:1,date:'2026-05-13',title:'한국어로 커피 주문하는 법',type:'편집자',views:''}],
+  notes:{kbrain:'',svmemo:'',snsreq:'',snsmkt:''},
+  nid:8,eid:8,sid:2,cy:2026,cm_:4,cf:'all'
+};
+
+// ── 스킬 정의 ──
+const SKILL_DEFS={
+  morning:{
+    icon:'☀️',title:'모닝 브리핑',sub:'오늘 우선순위 자동 정리',
+    fields:[],
+    notion:false,
+    buildPrompt:()=>`Henry Ahn 비즈니스 모닝 브리핑을 생성해줘.
+
+비즈니스 구조:
+- KONNECT: 게임 기반 글로벌 소셜 커뮤니티, 5/30 행사, 신청자 3명, 대기 31명
+- Seoul Vibe 101: 한국어 학습 PDF, Gumroad 미설정, 가격 미확정
+- SNS: 릴스 중심, 주간 5편 목표, 편집자 롱폼 전환 중
+
+오늘 날짜: ${new Date().toLocaleDateString('ko-KR')}
+
+다음 항목을 간결하게 정리해줘:
+1. 오늘 D-day 현황 (KONNECT 포함)
+2. 오늘 TOP 3 우선순위
+3. 긴급 처리 항목
+4. 이번 주 핵심 목표 1가지`
+  },
+  evening:{
+    icon:'🌙',title:'이브닝 리뷰',sub:'오늘 정리 + 내일 추천',
+    fields:[{id:'done',label:'오늘 완료한 것',placeholder:'예: 릴스 촬영, KONNECT 체크...',type:'textarea'}],
+    notion:false,
+    buildPrompt:(v)=>`Henry Ahn 이브닝 리뷰를 해줘.
+
+오늘 완료한 것: ${v.done||'미입력'}
+
+비즈니스 현황:
+- KONNECT 5/30 행사, 신청자 3명, 대기 31명
+- Seoul Vibe Gumroad 미설정
+- SNS 주간 5편 목표
+
+다음을 정리해줘:
+1. 오늘 성과 요약
+2. 내일 TOP 3 우선순위
+3. 이번 주 남은 핵심 업무`
+  },
+  caption:{
+    icon:'✍️',title:'캡션 + CTA',sub:'인스타그램 캡션 작성',
+    fields:[
+      {id:'topic',label:'영상 주제',placeholder:'예: 카페 주문, 존댓말 vs 반말',type:'input'},
+      {id:'tone',label:'톤',placeholder:'예: 밝고 에너지 있게, 공감형',type:'input'},
+    ],
+    notion:true,
+    buildPrompt:(v)=>`Henry Ahn 한국어 학습 채널 인스타그램 캡션을 작성해줘.
+
+채널: Henry Ahn | 타겟: 외국인(영어권) | 언어: 영어
+영상 주제: ${v.topic||'미입력'}
+톤: ${v.tone||'밝고 에너지 있게'}
+
+캡션 3가지 버전 작성:
+- 각 버전: 첫 줄(훅) + 본문 2~3줄 + 해시태그 + CTA
+- FOMO와 완결성 원칙 적용`
+  },
+  market:{
+    icon:'🔍',title:'시장 조사',sub:'한국어 학습 SNS 트렌드',
+    fields:[{id:'keyword',label:'조사 키워드',placeholder:'예: 한국어 카페 주문, 존댓말',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>`한국어 학습 SNS 시장 조사를 해줘.
+
+조사 키워드: ${v.keyword||'한국어 학습 일반'}
+채널: Henry Ahn (인스타그램 릴스, 외국인 타겟)
+
+다음을 분석해줘:
+1. 현재 잘 되는 콘텐츠 패턴 (훅 유형, 주제)
+2. 경쟁 채널 트렌드
+3. Henry Ahn 채널에 적용할 수 있는 인사이트 3가지
+4. 이번 주 추천 주제 3개`
+  },
+  konnect_cardnews:{
+    icon:'🎨',title:'KONNECT 카드뉴스 기획',sub:'홍보 콘텐츠 기획안',
+    fields:[
+      {id:'date',label:'행사일',placeholder:'예: 5/30 (토)',type:'input'},
+      {id:'point',label:'이번 행사 특별 포인트',placeholder:'예: AI 실시간 번역 제공',type:'input'},
+    ],
+    notion:true,
+    buildPrompt:(v)=>`KONNECT 행사 인스타그램 카드뉴스 기획안을 작성해줘.
+
+KONNECT: 게임 기반 글로벌 소셜 커뮤니티 (한국인+외국인 언어교환)
+행사일: ${v.date||'5/30 (토)'}
+특별 포인트: ${v.point||'없음'}
+게임: Draw the Lie, The Zero Percent
+CTA: Apply via Link in Bio
+
+다음을 제공해줘:
+1. 카드뉴스 슬라이드 구성 (7슬라이드)
+2. 각 슬라이드 헤드라인 + 본문
+3. FOMO + 사회적 증거 적용 방식
+4. 색상/톤 추천 (색채 심리학 기반)`
+  },
+  konnect_notice:{
+    icon:'💬',title:'D-1 공지 카톡',sub:'신청자 맞춤 한영 버전',
+    fields:[{id:'venue',label:'장소',placeholder:'예: 시청역 2번 출구 근처 카페',type:'input'}],
+    notion:false,
+    buildPrompt:(v)=>`KONNECT 5/30 행사 D-1 카카오톡 공지 메시지를 작성해줘.
+
+신청자: 이승현(한국, 남), Hayat(프랑스, 여), 박정원(한국, 여, 얼굴노출 비동의)
+장소: ${v.venue||'미정'}
+게임: Draw the Lie, The Zero Percent
+
+한국어 버전 + 영어 버전 모두 작성.
+간결하고 친근하게. 얼굴노출 비동의 관련 주의사항 포함.`
+  },
+  konnect_seating:{
+    icon:'🪑',title:'자리배치 추천',sub:'신청자 정보 기반',
+    fields:[],
+    notion:false,
+    buildPrompt:()=>`KONNECT 5/30 행사 자리배치를 추천해줘.
+
+신청자 3명:
+- 이승현: 한국인, 남, 한국어 Native, 영어 가능, 첫 참여
+- Hayat: 프랑스인, 여, 영어 Fluent, 한국어 Conversational, 1~2회 참여
+- 박정원: 한국인, 여, 영어 Comfortable, 첫 참여, 얼굴노출 비동의
+
+다음을 제안해줘:
+1. 자리배치 구성 (그룹/짝 구성)
+2. 언어 밸런스 고려사항
+3. 게임 진행 시 고려사항`
+  },
+  konnect_remind:{
+    icon:'📢',title:'대기 리스트 리마인드',sub:'D-7 한영 카톡',
+    fields:[{id:'date',label:'행사일',placeholder:'예: 5/30 (토)',type:'input'}],
+    notion:false,
+    buildPrompt:(v)=>`KONNECT 대기 리스트 D-7 리마인드 카카오톡 메시지를 작성해줘.
+
+행사일: ${v.date||'5/30 (토)'}
+대기 리스트: 31명 (인스타그램 유입 62%)
+게임: Draw the Lie, The Zero Percent
+
+한국어 + 영어 버전 모두 작성.
+FOMO 자극 + 신청 유도 CTA 포함.
+간결하고 친근하게.`
+  },
+  game_idea:{
+    icon:'🎮',title:'팀 게임 아이디어',sub:'신청자 맞춤 3개 제안',
+    fields:[],
+    notion:false,
+    buildPrompt:()=>`KONNECT 5/30 신청자 3명 맞춤 팀 게임을 3개 제안해줘.
+
+신청자: 한국인 2명 + 프랑스인 1명
+기존 게임: Draw the Lie, The Zero Percent
+목표: 언어교환 + 재미 + 한국 문화 체험
+
+각 게임:
+1. 게임명 + 규칙 (3줄)
+2. 언어교환 요소
+3. 예상 소요 시간`
+  },
+  sv_price:{
+    icon:'💸',title:'가격 구조 판단',sub:'Basic/Premium 가격 전략',
+    fields:[{id:'memo',label:'현재 고려 중인 가격대 (선택)',placeholder:'예: Basic $10, Premium $25',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>`Seoul Vibe 101 유료 PDF 가격 구조를 판단해줘.
+
+상품:
+- Basic: PDF + Audio + QR 릴스
+- Premium: Basic + Henry 피드백 영상
+현재 고려 가격: ${v.memo||'미정'}
+채널: 외국인 타겟, 인스타그램 유입
+참고: FREE1WEEK 무료 PDF로 유입
+
+앵커링 효과, 심리적 가격 전략, 경쟁사 분석 기반으로:
+1. 추천 가격 구조 + 근거
+2. 가격 표기 방식 (앵커링 적용)
+3. 업셀 전략`
+  },
+  sv_gumroad:{
+    icon:'📝',title:'Gumroad 영어 문구',sub:'판매 페이지 카피',
+    fields:[{id:'version',label:'작성할 버전',placeholder:'Basic / Premium / 둘 다',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>`Seoul Vibe 101 Gumroad 판매 페이지 영어 문구를 작성해줘.
+
+버전: ${v.version||'Basic + Premium 둘 다'}
+Basic: PDF + Audio + QR 릴스
+Premium: Basic + Henry 피드백 영상
+타겟: 한국어 배우는 외국인
+채널: Henry Ahn (인스타그램)
+
+FOMO + 사회적 증거 + 앵커링 적용:
+1. 헤드라인 (3가지 버전)
+2. 서브헤드
+3. 상품 설명 (bullet points)
+4. CTA 문구`
+  },
+  sv_pdf_plan:{
+    icon:'📄',title:'PDF 페이지 기획',sub:'콘텐츠 구성안',
+    fields:[{id:'topic',label:'PDF 주제',placeholder:'예: 카페 표현, 일상 한국어',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>`Seoul Vibe 101 유료 PDF 페이지 구성을 기획해줘.
+
+주제: ${v.topic||'미정'}
+타겟: 외국인 한국어 학습자
+포함 요소: 표현, Audio QR, 연습 문제
+
+다음을 제안해줘:
+1. 전체 페이지 구성 (목차)
+2. 각 파트 내용 요약
+3. 시각적 레이아웃 방향
+4. Henry Ahn 채널 스타일과의 연계 방법`
+  },
+  sv_caption:{
+    icon:'🎨',title:'Seoul Vibe 홍보 캡션',sub:'FOMO + 사회적 증거',
+    fields:[],
+    notion:true,
+    buildPrompt:()=>`Seoul Vibe 101 인스타그램 홍보 캡션을 작성해줘.
+
+상품: 한국어 학습 PDF (Basic/Premium)
+채널: Henry Ahn, 외국인 타겟
+FREE1WEEK: 무료 버전으로 유입
+
+FOMO + 사회적 증거 + 완결성 원칙 적용.
+캡션 3가지 버전 + 해시태그 + CTA`
+  },
+  sns_strategy:{
+    icon:'📱',title:'SNS 전략',sub:'다음 주 릴스 주제 추천',
+    fields:[{id:'memo',label:'이번 주 시장 조사 메모 (선택)',placeholder:'잘 된 채널 패턴...',type:'textarea'}],
+    notion:true,
+    buildPrompt:(v)=>`Henry Ahn 채널 다음 주 릴스 주제를 추천해줘.
+
+채널: 한국어 학습, 외국인 타겟
+주간 목표: 숏폼 5편
+편집자: 롱폼 1편 전환 중
+시장 조사 메모: ${v.memo||'없음'}
+
+다음을 제공해줘:
+1. 추천 주제 5개 (각 훅 방향 포함)
+2. 예상 성과 높은 순서로 정렬
+3. 이번 주 우선순위 1개 선정 이유`
+  },
+  content_cal:{
+    icon:'📅',title:'콘텐츠 캘린더',sub:'이번 달 기획',
+    fields:[],
+    notion:true,
+    buildPrompt:()=>`Henry Ahn 채널 이번 달 콘텐츠 캘린더를 짜줘.
+
+채널: 한국어 학습, 인스타그램 릴스
+주간 목표: 숏폼 5편
+편집자: 롱폼 1편 전환 중
+이번 달 주요 이벤트: KONNECT 5/30, Seoul Vibe 론칭 준비
+
+주별로 구성:
+- 각 주 테마
+- 숏폼 주제 5개
+- FREE1WEEK 업로드 연계
+- KONNECT/Seoul Vibe 홍보 연계`
+  },
+  design_fomo:{
+    icon:'⚡',title:'FOMO + 사회적 증거',sub:'마케팅 심리학 디자인 기획',
+    fields:[{id:'target',label:'적용할 콘텐츠',placeholder:'예: Seoul Vibe 카드뉴스, KONNECT 포스터',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>{
+      const req=document.getElementById('design-req')?.value.trim()||'';
+      return `FOMO + 사회적 증거 원리를 적용한 디자인 기획안을 작성해줘.
+
+적용 대상: ${v.target||req||'미정'}
+채널: Henry Ahn (인스타그램, 외국인 타겟)
+
+다음을 제공해줘:
+1. FOMO 적용 방식 (카피 + 시각 요소)
+2. 사회적 증거 요소 (어떤 숫자/증거 활용)
+3. 색상 + 레이아웃 방향
+4. Canva 적용 단계별 가이드`;
+    }
+  },
+  design_color:{
+    icon:'🎨',title:'색채 심리학',sub:'색상 팔레트 + 레이아웃',
+    fields:[{id:'target',label:'적용할 콘텐츠',placeholder:'예: KONNECT 포스터, 릴스 썸네일',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>{
+      const req=document.getElementById('design-req')?.value.trim()||'';
+      return `색채 심리학 기반 디자인 기획안을 작성해줘.
+
+적용 대상: ${v.target||req||'미정'}
+타겟: 외국인 (20~35세, 한국어 학습 관심)
+
+다음을 제공해줘:
+1. 추천 색상 팔레트 + 심리적 효과
+2. 색상 배합 비율
+3. 타이포그래피 방향
+4. Canva 적용 가이드`;
+    }
+  },
+  design_anchor:{
+    icon:'🧠',title:'앵커링 효과',sub:'가격 표기 디자인',
+    fields:[{id:'price',label:'상품 가격',placeholder:'예: Basic $12, Premium $29',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>`앵커링 효과를 적용한 가격 표기 디자인 기획안을 작성해줘.
+
+상품 가격: ${v.price||'미정'}
+상품: Seoul Vibe 101 (한국어 학습 PDF)
+타겟: 외국인 한국어 학습자
+
+다음을 제공해줘:
+1. 앵커링 가격 표기 방식
+2. 시각적 강조 요소
+3. 취소선/비교 가격 활용법
+4. Canva 레이아웃 가이드`
+  },
+  design_eye:{
+    icon:'👁️',title:'시선 유도 (F패턴)',sub:'썸네일 + 카드뉴스',
+    fields:[{id:'target',label:'적용할 콘텐츠',placeholder:'예: 릴스 썸네일, 카드뉴스 1슬라이드',type:'input'}],
+    notion:true,
+    buildPrompt:(v)=>{
+      const req=document.getElementById('design-req')?.value.trim()||'';
+      return `F패턴 시선 유도 원리를 적용한 디자인 기획안을 작성해줘.
+
+적용 대상: ${v.target||req||'미정'}
+타겟: 외국인 (모바일 스크롤 중)
+
+다음을 제공해줘:
+1. F패턴 기반 레이아웃 구성
+2. 시선 집중 포인트 배치
+3. 텍스트 계층 구조
+4. Canva 적용 가이드`;
+    }
+  },
+};
+
+// ── Claude API 호출 ──
+async function callClaude(prompt,system=''){
+  const body={prompt};
+  if(system)body.system=system;
+  const res=await fetch('/.netlify/functions/claude',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data=await res.json();
+  if(data.error)throw new Error(data.error);
+  return data.text;
+}
+
+// ── 릴스 대본 ──
+function openReelModal(){
+  const memo=document.getElementById('sns-mkt')?.value.trim()||'';
+  if(memo)document.getElementById('r-market').value=memo;
+  document.getElementById('reel-out').classList.remove('show');
+  document.getElementById('reel-btn').disabled=false;
+  document.getElementById('reel-btn').textContent='✦ 대본 생성하기';
+  document.getElementById('reel-notion').style.display='none';
+  document.getElementById('reel-mw').classList.add('open');
+  document.getElementById('r-topic').focus();
+}
+function closeReelModal(){document.getElementById('reel-mw').classList.remove('open');}
+
+async function generateReel(){
+  const topic=document.getElementById('r-topic').value.trim();
+  if(!topic){document.getElementById('r-topic').style.borderColor='var(--rborder)';setTimeout(()=>document.getElementById('r-topic').style.borderColor='',1500);return;}
+  const hookType=getChip('hook-grp').replace(/^[🤖❓⚡💭]\s*/,'');
+  const duration=getChip('dur-grp');
+  const mode=getChip('mode-grp').replace(/^[👁🎬✂️]\s*/,'');
+  const market=document.getElementById('r-market').value.trim();
+  const isEditor=mode.includes('편집자');
+  const isSelf=mode.includes('Self-edit');
+
+  const btn=document.getElementById('reel-btn');
+  const out=document.getElementById('reel-out');
+  const box=document.getElementById('reel-box');
+  btn.disabled=true;btn.textContent='생성 중...';
+  out.classList.add('show');
+  document.getElementById('reel-notion').style.display='none';
+  box.innerHTML='<div class="loading-dots">Claude가 대본을 작성하는 중<div class="da"><span></span><span></span><span></span></div></div>';
+
+  const sys=isEditor?
+    `Henry Ahn 한국어 학습 채널 편집자용 대본 전문가.
+캐릭터: 👑 King Sejong(곤룡포)/⚪️ White Shirt/⚫️ Black Shirt/👕 Blue Shirt
+SFX: 🔔 Ding! / ⏱️ Tick-Tock / 딩동댕 / ⚡️ FAST ZOOM-IN
+구조: 📌 Editor's Quick Guide → 씬별 [Visual]+[Caption/Audio]+[SFX] → Outro CTA
+영어 대본. 한국어 표현은 한글+영어 병기.${market?'\n시장조사: '+market:''}`:
+    isSelf?
+    `Henry Ahn Self-edit 숏폼 대본. 7~10줄 대사만.
+구조: 1.훅 2~4.틀린상황극 5.곤룡포 NOOOO 6~7.올바른표현 8.CTA`:
+    `Henry Ahn 한국어 학습 채널 대본 전문가.
+타겟: 외국인(영어권) | 언어: 영어 | 톤: 밝고 에너지 있게
+Version A/B/C 3개 출력. 각: [훅]+[본문]+[CTA]+[완주율 팁]
+길이: 15초=~50단어/30초=~100단어/60초=~180단어${market?'\n시장조사: '+market:''}`;
+
+  const prompt=`주제: ${topic}\n훅 방향: ${hookType==='AI 추천'?'Claude가 최적 훅 판단':'hookType'}\n영상 길이: ${duration}\n출력 모드: ${mode}`;
+
+  try{
+    const text=await callClaude(prompt,sys);
+    box.textContent=text;
+    box._raw=text;box._topic=topic;box._mode=mode;
+    if(isEditor||isSelf)document.getElementById('reel-notion').style.display='inline-flex';
+  }catch(e){box.textContent='오류: '+e.message;}
+  btn.disabled=false;btn.textContent='✦ 다시 생성';
+}
+
+async function saveReelToNotion(){
+  const box=document.getElementById('reel-box');
+  if(!box._raw)return;
+  const isSelf=box._mode?.includes('Self-edit');
+  const notif_msg=isSelf?'Self-edit 페이지에 저장 중...':'Social Media Board에 저장 중...';
+  notif(notif_msg);
+  // 실제 Notion 저장은 추후 Notion API 연동 시 구현
+  alert('Notion API 연동 후 자동 저장됩니다.\n\n지금은 복사 후 Notion에 직접 붙여넣어주세요.');
+}
+
+// ── 일반 스킬 모달 ──
+function openSkillModal(id){
+  const def=SKILL_DEFS[id];if(!def)return;
+  currentSkillId=id;
+  document.getElementById('skill-icon').textContent=def.icon;
+  document.getElementById('skill-title').textContent=def.title;
+  document.getElementById('skill-sub').textContent=def.sub;
+  const fields=document.getElementById('skill-fields');
+  fields.innerHTML=def.fields.map(f=>`
+    <div class="mf">
+      <div class="ml">${f.label}</div>
+      ${f.type==='textarea'
+        ?`<textarea class="mi" id="sf-${f.id}" placeholder="${f.placeholder}" rows="2"></textarea>`
+        :`<input class="mi" id="sf-${f.id}" placeholder="${f.placeholder}">`}
+    </div>`).join('');
+  document.getElementById('skill-out').classList.remove('show');
+  document.getElementById('skill-btn').disabled=false;
+  document.getElementById('skill-btn').textContent='✦ 실행하기';
+  document.getElementById('skill-notion').style.display=def.notion?'inline-flex':'none';
+  document.getElementById('skill-mw').classList.add('open');
+  setTimeout(()=>fields.querySelector('input,textarea')?.focus(),100);
+}
+function closeSkillModal(){document.getElementById('skill-mw').classList.remove('open');}
+
+async function runSkill(){
+  const def=SKILL_DEFS[currentSkillId];if(!def)return;
+  const values={};
+  def.fields.forEach(f=>{const el=document.getElementById('sf-'+f.id);if(el)values[f.id]=el.value.trim();});
+  const prompt=def.buildPrompt(values);
+  const btn=document.getElementById('skill-btn');
+  const out=document.getElementById('skill-out');
+  const box=document.getElementById('skill-box');
+  btn.disabled=true;btn.textContent='실행 중...';
+  out.classList.add('show');
+  box.innerHTML='<div class="loading-dots">Claude가 처리하는 중<div class="da"><span></span><span></span><span></span></div></div>';
+  try{
+    const text=await callClaude(prompt);
+    box.textContent=text;box._raw=text;box._skill=currentSkillId;
+  }catch(e){box.textContent='오류: '+e.message;}
+  btn.disabled=false;btn.textContent='✦ 다시 실행';
+}
+
+async function saveSkillToNotion(){
+  alert('Notion API 연동 후 자동 저장됩니다.\n\n지금은 복사 후 Notion에 직접 붙여넣어주세요.');
+}
+
+// ── 공통 유틸 ──
+function selectChip(el,grp){
+  document.querySelectorAll('#'+grp+' .chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+function getChip(grp){const el=document.querySelector('#'+grp+' .chip.on');return el?el.textContent.trim():'';}
+function copyOut(boxId,btnId){
+  const box=document.getElementById(boxId);
+  navigator.clipboard.writeText(box._raw||box.textContent);
+  const btn=document.getElementById(btnId);
+  btn.textContent='복사됨!';btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied');},2000);
+}
+
+// ── Storage ──
+function loadState(){
+  try{const d=localStorage.getItem(SK);if(d){const p=JSON.parse(d);S={...S,...p};}}catch(e){}
+}
+function saveAll(){
+  S.notes.kbrain=document.getElementById('k-brain')?.value||'';
+  S.notes.svmemo=document.getElementById('sv-memo')?.value||'';
+  S.notes.snsreq=document.getElementById('sns-req')?.value||'';
+  S.notes.snsmkt=document.getElementById('sns-mkt')?.value||'';
+  try{localStorage.setItem(SK,JSON.stringify(S));notif('저장 완료 ✓');const el=document.getElementById('saved-lbl');el.textContent='저장됨';setTimeout(()=>el.textContent='',2000);}
+  catch(e){notif('저장 실패');}
+}
+function autoSave(k,v){S.notes[k]=v;}
+function notif(msg){const el=document.getElementById('notif');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+
+// ── 네비게이션 ──
+function go(id){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sec-'+id).classList.add('on');
+  document.getElementById('ptitle').textContent=TITLES[id]||id;
+  document.querySelectorAll('.nb').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+id+"'"))b.classList.add('on');});
+  render();
+  setTimeout(()=>{
+    const map={kbrain:'k-brain',svmemo:'sv-memo',snsreq:'sns-req',snsmkt:'sns-mkt'};
+    Object.entries(map).forEach(([k,eid])=>{const el=document.getElementById(eid);if(el)el.value=S.notes[k]||'';});
+  },50);
+}
+
+// ── 렌더링 ──
+function render(){rStats();rToday();rAll();rKC();rCal();rEv();rSNS();rWeek();}
+
+function rStats(){
+  const tod=S.tasks.filter(t=>t.today),done=tod.filter(t=>t.done).length;
+  const pct=tod.length?Math.round(done/tod.length*100):0;
+  $('s-today',tod.length);$('s-tdone',done+'개 완료');$p('p-today',pct);$('today-pct',pct+'%');
+  $('s-all',S.tasks.length);$('s-asub',S.tasks.filter(t=>!t.done).length+'개 진행');
+  const diff=Math.ceil((new Date('2026-05-30')-new Date())/86400000);
+  const dd=diff>0?'D-'+diff:diff===0?'D-Day':'완료';
+  ['s-dday','k-dday'].forEach(id=>$(id,dd));
+  $('k-prep',S.kc.filter(c=>c.done).length+'/'+S.kc.length);
+  const now=new Date(),ws=new Date(now);ws.setDate(now.getDate()-((now.getDay()+6)%7));
+  const we=new Date(ws);we.setDate(ws.getDate()+6);
+  const tw=S.sns.filter(r=>{const d=new Date(r.date);return d>=ws&&d<=we;}).length;
+  $('sns-up',tw+'/5');$p('p-sns',Math.round(tw/5*100));
+}
+function $(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function $p(id,pct){const e=document.getElementById(id);if(e)e.style.width=pct+'%';}
+
+function mkTask(t){
+  const d=document.createElement('div');d.className='task';
+  d.innerHTML='<div class="tcb'+(t.done?' done':'')+'" onclick="toggle('+t.id+')">'+(t.done?'✓':'')+'</div>'+
+    '<div style="flex:1"><div class="tt'+(t.done?' done':'')+'">'+t.text+'</div>'+
+    '<div class="tm"><span class="badge '+(CATS[t.cat]||'bb')+'" style="font-size:10px;padding:1px 6px">'+t.cat+'</span>'+(t.today?'<span style="color:var(--green)">오늘</span>':'')+'</div></div>'+
+    '<div class="tact"><button class="ta e" onclick="openModal(\'task\','+t.id+')">수정</button><button class="ta d" onclick="delTask('+t.id+')">삭제</button></div>';
+  return d;
+}
+function rToday(){const el=document.getElementById('today-list');if(!el)return;el.innerHTML='';S.tasks.filter(t=>t.today).forEach(t=>el.appendChild(mkTask(t)));}
+function rAll(){
+  const el=document.getElementById('all-list');if(!el)return;el.innerHTML='';
+  let tasks=S.tasks;
+  if(S.cf==='today')tasks=tasks.filter(t=>t.today);
+  else if(S.cf!=='all')tasks=tasks.filter(t=>t.cat===S.cf);
+  if(!tasks.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:12px 0;text-align:center;font-family:var(--mono)">업무 없음</div>';return;}
+  tasks.forEach(t=>el.appendChild(mkTask(t)));
+}
+function ft(f,btn){S.cf=f;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rAll();}
+function toggle(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;render();}}
+function delTask(id){S.tasks=S.tasks.filter(t=>t.id!==id);render();notif('삭제됨');}
+function qadd(){const v=document.getElementById('qi').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:document.getElementById('qcat').value,today:true,done:false});document.getElementById('qi').value='';render();notif('추가됨');}
+function qaddD(){const v=document.getElementById('qi-d').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:'기타',today:true,done:false});document.getElementById('qi-d').value='';render();notif('추가됨');}
+
+function rKC(){
+  const el=document.getElementById('k-checks');if(!el)return;el.innerHTML='';
+  S.kc.forEach(c=>{
+    const d=document.createElement('div');d.className='chk-item';
+    d.innerHTML='<span onclick="toggleKC('+c.id+')" style="cursor:pointer;font-size:14px;color:'+(c.done?'var(--green)':'var(--t3)')+'">'+( c.done?'●':'○')+'</span>'+
+      '<span style="flex:1;font-size:12px;color:'+(c.done?'var(--t3)':'var(--t2)')+';'+(c.done?'text-decoration:line-through':'')+'">'+c.text+'</span>'+
+      '<div class="tact"><button class="ta e" onclick="editKC('+c.id+')">수정</button><button class="ta d" onclick="delKC('+c.id+')">삭제</button></div>';
+    el.appendChild(d);
+  });
+}
+function toggleKC(id){const c=S.kc.find(c=>c.id===id);if(c){c.done=!c.done;rKC();rStats();}}
+function delKC(id){S.kc=S.kc.filter(c=>c.id!==id);rKC();rStats();}
+function editKC(id){const c=S.kc.find(c=>c.id===id);if(!c)return;const t=prompt('수정',c.text);if(t&&t.trim()){c.text=t.trim();rKC();}}
+function addKC(){const t=prompt('새 항목');if(t&&t.trim()){S.kc.push({id:Date.now(),text:t.trim(),done:false});rKC();rStats();}}
+
+function getWeekDates(off){
+  const now=new Date(),mon=new Date(now);
+  mon.setDate(now.getDate()-((now.getDay()+6)%7)+off*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+}
+function rWeek(){
+  const el=document.getElementById('week-grid');if(!el)return;
+  const days=getWeekDates(weekOffset);
+  const dn=['월','화','수','목','금','토','일'];
+  const now=new Date();
+  const f=days[0],l=days[6];
+  document.getElementById('week-range').textContent=(f.getMonth()+1)+'/'+f.getDate()+' – '+(l.getMonth()+1)+'/'+l.getDate();
+  el.innerHTML='';
+  days.forEach((d,i)=>{
+    const ds=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const isT=d.toDateString()===now.toDateString();
+    const isSun=i===6;
+    const isSel=selectedDay===ds;
+    const evts=S.events.filter(e=>e.date===ds);
+    const col=document.createElement('div');
+    col.className='day-col'+(isT?' today':'')+(isSun?' sunday':'')+(isSel?' selected':'');
+    col.onclick=()=>selectDay(ds,d);
+    let evH=evts.map(e=>'<div class="day-ev '+(e.cat==='KONNECT'?'konnect':e.cat==='SNS'?'sns':'pdf')+'">'+e.title+'</div>').join('');
+    if(isT&&S.tasks.filter(t=>t.today&&!t.done).length)evH+='<div class="day-ev" style="color:var(--green)">업무 '+S.tasks.filter(t=>t.today&&!t.done).length+'개</div>';
+    col.innerHTML='<div class="day-hdr"><div class="day-name">'+dn[i]+'</div><div class="day-num">'+d.getDate()+'</div></div><div class="day-body">'+evH+'</div>';
+    el.appendChild(col);
+  });
+}
+function selectDay(ds,d){
+  selectedDay=ds===selectedDay?null:ds;rWeek();
+  const det=document.getElementById('day-detail');
+  if(!selectedDay){det.classList.remove('open');return;}
+  const ds2=['일','월','화','수','목','금','토'];
+  document.getElementById('detail-title').textContent=(d.getMonth()+1)+'/'+d.getDate()+' ('+ds2[d.getDay()]+')';
+  const evts=S.events.filter(e=>e.date===ds);
+  const tasks=d.toDateString()===new Date().toDateString()?S.tasks.filter(t=>t.today):[];
+  let html=evts.map(e=>'<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--b1);color:var(--t2)">'+e.title+' <span class="badge '+(CATS[e.cat]||'bb')+'" style="font-size:10px">'+e.cat+'</span></div>').join('');
+  html+=tasks.map(t=>'<div style="font-size:12px;padding:5px 0;color:var(--t2);display:flex;align-items:center;gap:7px"><span style="color:'+(t.done?'var(--green)':'var(--t3)')+'">'+( t.done?'✓':'○')+'</span>'+t.text+'</div>').join('');
+  if(!evts.length&&!tasks.length)html='<div style="font-size:12px;color:var(--t3);padding:10px 0;font-family:var(--mono)">일정 없음</div>';
+  html+='<div style="margin-top:10px"><button class="btn btn-g" onclick="openModal(\'event\',null,\''+ds+'\')">+ 일정 추가</button></div>';
+  document.getElementById('detail-content').innerHTML=html;
+  det.classList.add('open');
+}
+function closeDetail(){selectedDay=null;document.getElementById('day-detail').classList.remove('open');rWeek();}
+function changeWeek(dir){weekOffset=dir===0?0:weekOffset+dir;selectedDay=null;document.getElementById('day-detail').classList.remove('open');rWeek();}
+
+function rCal(){
+  const el=document.getElementById('cal');if(!el)return;
+  const y=S.cy,m=S.cm_;
+  document.getElementById('cal-title').textContent=y+'년 '+(m+1)+'월';
+  const days=['일','월','화','수','목','금','토'];
+  el.innerHTML=days.map(d=>'<div class="cd ch2">'+d+'</div>').join('');
+  const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();
+  const now=new Date();
+  const evDs=S.events.filter(e=>{const d=new Date(e.date);return d.getFullYear()===y&&d.getMonth()===m;}).map(e=>new Date(e.date).getDate());
+  for(let i=0;i<first;i++)el.innerHTML+='<div class="cd co"></div>';
+  for(let d=1;d<=last;d++){
+    const isT=y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate();
+    const hasE=evDs.includes(d);
+    el.innerHTML+='<div class="cd'+(isT?' ct2':'')+(hasE?' ce':'')+'">'+d+(hasE?'<span style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:var(--amber);display:block"></span>':'')+'</div>';
+  }
+}
+function rEv(){
+  const el=document.getElementById('ev-list');if(!el)return;el.innerHTML='';
+  const ds=['일','월','화','수','목','금','토'];
+  [...S.events].sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>{
+    const d=document.createElement('div');d.className='ev-row';
+    const dt=new Date(e.date);
+    d.innerHTML='<div style="min-width:72px;font-size:11px;color:var(--t3);font-family:var(--mono)">'+(dt.getMonth()+1)+'/'+dt.getDate()+' ('+ds[dt.getDay()]+')</div>'+
+      '<div style="flex:1;font-size:12px">'+e.title+'</div>'+
+      '<span class="badge '+(CATS[e.cat]||'bb')+'" style="font-size:10px">'+e.cat+'</span>'+
+      '<div class="tact"><button class="ta e" onclick="openModal(\'event\','+e.id+')">수정</button><button class="ta d" onclick="delEv('+e.id+')">삭제</button></div>';
+    el.appendChild(d);
+  });
+}
+function delEv(id){S.events=S.events.filter(e=>e.id!==id);rCal();rEv();rWeek();}
+function cm(dir){S.cm_+=dir;if(S.cm_<0){S.cm_=11;S.cy--;}if(S.cm_>11){S.cm_=0;S.cy++;}rCal();rEv();}
+
+function rSNS(){
+  const el=document.getElementById('sns-list');if(!el)return;el.innerHTML='';
+  if(!S.sns.length){el.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px 0;text-align:center;font-family:var(--mono)">기록 없음</div>';return;}
+  [...S.sns].sort((a,b)=>b.date.localeCompare(a.date)).forEach(r=>{
+    const d=document.createElement('div');d.className='ev-row';
+    const dt=new Date(r.date);
+    d.innerHTML='<div style="min-width:44px;font-size:11px;color:var(--t3);font-family:var(--mono)">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</div>'+
+      '<div style="flex:1;font-size:12px">'+r.title+'</div>'+
+      '<span class="badge '+(r.type==='편집자'?'bp':'bc')+'" style="font-size:10px">'+r.type+'</span>'+
+      (r.views?'<span style="font-size:11px;color:var(--t3);margin-left:5px;font-family:var(--mono)">👁 '+r.views+'</span>':'')+
+      '<div class="tact"><button class="ta e" onclick="openModal(\'sns\','+r.id+')">수정</button><button class="ta d" onclick="delSNS('+r.id+')">삭제</button></div>';
+    el.appendChild(d);
+  });
+}
+function delSNS(id){S.sns=S.sns.filter(r=>r.id!==id);rSNS();rStats();}
+
+function openModal(type,id,prefillDate){
+  const el=document.getElementById('mc');
+  const cats=['KONNECT','PDF','SNS','디자인','퍼널','기타'];
+  const co=(sel)=>cats.map(c=>'<option'+(sel===c?' selected':'')+'>'+c+'</option>').join('');
+  if(type==='task'){
+    const data=id?S.tasks.find(t=>t.id===id):null;const isEdit=!!data;
+    el.innerHTML='<div class="mtitle">'+(isEdit?'업무 수정':'새 업무 추가')+'</div>'+
+      '<div class="mf2"><div class="ml2">업무명</div><input class="mi2" id="m1" value="'+(isEdit?data.text:'')+'" placeholder="업무명"></div>'+
+      '<div class="mf2"><div class="ml2">카테고리</div><select class="mi2" id="m2">'+co(isEdit?data.cat:'KONNECT')+'</select></div>'+
+      '<div class="mf2"><div class="ml2">오늘</div><select class="mi2" id="m3"><option value="1"'+(isEdit&&data.today?' selected':'')+'>예</option><option value="0"'+(isEdit&&!data.today?' selected':'')+'>아니오</option></select></div>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-g" onclick="saveTask('+(isEdit?id:'null')+')">'+( isEdit?'수정':'추가')+'</button></div>';
+  }else if(type==='event'){
+    const data=id?S.events.find(e=>e.id===id):null;const isEdit=!!data;
+    el.innerHTML='<div class="mtitle">'+(isEdit?'일정 수정':'새 일정 추가')+'</div>'+
+      '<div class="mf2"><div class="ml2">날짜</div><input class="mi2" id="m1" type="date" value="'+(isEdit?data.date:prefillDate||'')+'"></div>'+
+      '<div class="mf2"><div class="ml2">제목</div><input class="mi2" id="m2" value="'+(isEdit?data.title:'')+'" placeholder="일정 제목"></div>'+
+      '<div class="mf2"><div class="ml2">카테고리</div><select class="mi2" id="m3">'+co(isEdit?data.cat:'기타')+'</select></div>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-g" onclick="saveEvent('+(isEdit?id:'null')+')">'+( isEdit?'수정':'추가')+'</button></div>';
+  }else if(type==='sns'){
+    const data=id?S.sns.find(r=>r.id===id):null;const isEdit=!!data;
+    el.innerHTML='<div class="mtitle">'+(isEdit?'업로드 수정':'업로드 기록 추가')+'</div>'+
+      '<div class="mf2"><div class="ml2">날짜</div><input class="mi2" id="m1" type="date" value="'+(isEdit?data.date:'')+'"></div>'+
+      '<div class="mf2"><div class="ml2">제목</div><input class="mi2" id="m2" value="'+(isEdit?data.title:'')+'" placeholder="영상 제목"></div>'+
+      '<div class="mf2"><div class="ml2">편집 유형</div><select class="mi2" id="m3"><option'+(isEdit&&data.type==='편집자'?' selected':'')+'>편집자</option><option'+(isEdit&&data.type==='직접편집'?' selected':'')+'>직접편집</option></select></div>'+
+      '<div class="mf2"><div class="ml2">조회수 (선택)</div><input class="mi2" id="m4" value="'+(isEdit&&data.views?data.views:'')+'" placeholder="예: 12,400"></div>'+
+      '<div class="mbtns"><button class="btn" onclick="closeModal()">취소</button><button class="btn btn-g" onclick="saveSNS('+(isEdit?id:'null')+')">'+( isEdit?'수정':'추가')+'</button></div>';
+  }
+  document.getElementById('mw').classList.add('open');
+  setTimeout(()=>el.querySelector('input,select')?.focus(),100);
+}
+function closeModal(){document.getElementById('mw').classList.remove('open');}
+function saveTask(id){
+  const text=document.getElementById('m1').value.trim();if(!text)return;
+  const cat=document.getElementById('m2').value,today=document.getElementById('m3').value==='1';
+  if(!id||id==='null'){S.tasks.push({id:S.nid++,text,cat,today,done:false});notif('추가됨');}
+  else{const t=S.tasks.find(t=>t.id==id);if(t){t.text=text;t.cat=cat;t.today=today;}notif('수정됨');}
+  closeModal();render();
+}
+function saveEvent(id){
+  const date=document.getElementById('m1').value;if(!date)return;
+  const title=document.getElementById('m2').value.trim();if(!title)return;
+  const cat=document.getElementById('m3').value;
+  if(!id||id==='null'){S.events.push({id:S.eid++,date,title,cat});notif('추가됨');}
+  else{const e=S.events.find(e=>e.id==id);if(e){e.date=date;e.title=title;e.cat=cat;}notif('수정됨');}
+  closeModal();rCal();rEv();rWeek();
+}
+function saveSNS(id){
+  const date=document.getElementById('m1').value;if(!date)return;
+  const title=document.getElementById('m2').value.trim();if(!title)return;
+  const type=document.getElementById('m3').value,views=document.getElementById('m4')?.value.trim()||'';
+  if(!id||id==='null'){S.sns.push({id:S.sid++,date,title,type,views});notif('추가됨');}
+  else{const r=S.sns.find(r=>r.id==id);if(r){r.date=date;r.title=title;r.type=type;r.views=views;}notif('수정됨');}
+  closeModal();rSNS();rStats();
+}
+
+function doSearch(q){if(!q)return;}
+document.getElementById('reel-mw').onclick=e=>{if(e.target===document.getElementById('reel-mw'))closeReelModal();};
+document.getElementById('skill-mw').onclick=e=>{if(e.target===document.getElementById('skill-mw'))closeSkillModal();};
+document.getElementById('mw').onclick=e=>{if(e.target===document.getElementById('mw'))closeModal();};
+
+const now=new Date();const ds5=['일','월','화','수','목','금','토'];
+document.getElementById('sdate').textContent=(now.getMonth()+1)+'/'+now.getDate()+' ('+ds5[now.getDay()]+')';
+loadState();render();
+</script>
+</body>
+</html>
