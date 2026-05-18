@@ -910,8 +910,23 @@ function copyOut(boxId,btnId){
 }
 
 // ── Storage ──
+// 수정 (이렇게 바꾸세요)
 function loadState(){
-  try{const d=localStorage.getItem(SK);if(d){const p=JSON.parse(d);S={...S,...p};}}catch(e){}
+  try{
+    const d=localStorage.getItem(SK);
+    if(d){
+      const p=JSON.parse(d);
+      // 배열은 완전히 교체, 나머지는 병합
+      if(p.tasks)S.tasks=p.tasks;
+      if(p.kc)S.kc=p.kc;
+      if(p.events)S.events=p.events;
+      if(p.sns)S.sns=p.sns;
+      if(p.notes)S.notes=p.notes;
+      if(p.nid)S.nid=p.nid;
+      if(p.eid)S.eid=p.eid;
+      if(p.sid)S.sid=p.sid;
+    }
+  }catch(e){}
 }
 function saveAll(){
   S.notes.kbrain=document.getElementById('k-brain')?.value||'';
