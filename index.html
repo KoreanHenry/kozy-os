@@ -884,27 +884,21 @@ Editor Quick Guide:
 - The 2.5-Second Rule: FREEZE FRAME 2.5초 + Tick-Tock SFX
 - Answer Rule: 정답 시 Ding! SFX
 
-Scene 1: [Visual] King Sejong / Palace [Caption] "Stop saying X in Korea!"
+Scene 1: [Visual] King Sejong / Palace [Caption] Stop saying X in Korea!
 Scene 2: [Visual] White Shirt + Black Shirt [Caption] 상황극 대사
-Scene 3: [Visual] King [Action] FAST ZOOM-IN [Caption] "NOOOOOO!"
+Scene 3: [Visual] King [Action] FAST ZOOM-IN [Caption] NOOOOOO!
 Scene 4: [Visual] White Shirt [Caption] 올바른 표현 + Ding! SFX
 Scene 5: [Visual] King [Caption] CTA 대사
 ===`;
 
   // 추가 요구사항 조합
   let extras='';
-  if(intent) extras+='
-핵심 내용/의도: '+intent;
-  if(hookLine) extras+='
-훅 첫 대사 아이디어: '+hookLine;
-  if(skit) extras+='
-상황극 설정: '+skit;
-  if(expression) extras+='
-가르칠 핵심 표현: '+expression;
-  if(cta) extras+='
-CTA 방향: '+cta;
-  if(market) extras+='
-시장 조사 메모: '+market;
+  if(intent) extras+='\n핵심 내용/의도: '+intent;
+  if(hookLine) extras+='\n훅 첫 대사 아이디어: '+hookLine;
+  if(skit) extras+='\n상황극 설정: '+skit;
+  if(expression) extras+='\n가르칠 핵심 표현: '+expression;
+  if(cta) extras+='\nCTA 방향: '+cta;
+  if(market) extras+='\n시장 조사 메모: '+market;
 
   const sys=isEditor?
     `Henry Ahn 한국어 학습 채널 편집자용 대본 전문가.
