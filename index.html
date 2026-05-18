@@ -997,10 +997,10 @@ function rAll(){
   tasks.forEach(t=>el.appendChild(mkTask(t)));
 }
 function ft(f,btn){S.cf=f;document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rAll();}
-function toggle(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;render();}}
+function toggle(id){const t=S.tasks.find(t=>t.id===id);if(t){t.done=!t.done;render();saveAll();}}
 function delTask(id){S.tasks=S.tasks.filter(t=>t.id!==id);render();notif('삭제됨');}
-function qadd(){const v=document.getElementById('qi').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:document.getElementById('qcat').value,today:true,done:false});document.getElementById('qi').value='';render();notif('추가됨');}
-function qaddD(){const v=document.getElementById('qi-d').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:'기타',today:true,done:false});document.getElementById('qi-d').value='';render();notif('추가됨');}
+function qadd(){const v=document.getElementById('qi').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:document.getElementById('qcat').value,today:true,done:false});document.getElementById('qi').value='';render();saveAll();notif('추가됨');}
+function qaddD(){const v=document.getElementById('qi-d').value.trim();if(!v)return;S.tasks.push({id:S.nid++,text:v,cat:'기타',today:true,done:false});document.getElementById('qi-d').value='';render();saveAll();notif('추가됨');}
 
 function rKC(){
   const el=document.getElementById('k-checks');if(!el)return;el.innerHTML='';
