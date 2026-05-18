@@ -27,7 +27,7 @@ exports.handler = async (event) => {
 
   try {
     const body = {
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-5',
       max_tokens,
       messages: [{ role: 'user', content: safePrompt }]
     };
