@@ -652,7 +652,7 @@ body{font-family:var(--font);font-size:13px;color:var(--t1);background:var(--bg)
         <span class="out-label">생성된 대본</span>
         <div class="out-actions">
           <button class="copy-btn" id="reel-copy" onclick="copyOut('reel-box','reel-copy')">복사</button>
-          <button class="notion-btn" id="reel-notion">📝 Notion 저장 (준비 중)</button>
+          <button class="notion-btn" id="reel-notion" onclick="saveReelToNotion()">📝 Notion 저장</button>
         </div>
       </div>
       <div class="out-box" id="reel-box"></div>
@@ -850,6 +850,8 @@ Version A/B/C 3개 출력. 각: [훅]+[본문]+[CTA]+[완주율 팁]
     const text=await callClaude(prompt,sys);
     box.textContent=text;
     box._raw=text;
+    if(isEditor||isSelf) document.getElementById('reel-notion').style.display='inline-flex';
+    else document.getElementById('reel-notion').style.display='none';
   }catch(e){box.textContent='오류: '+e.message;}
   btn.disabled=false;btn.textContent='다시 생성';
 }
@@ -891,6 +893,7 @@ async function runSkill(){
   try{
     const text=await callClaude(prompt);
     box.textContent=text;box._raw=text;
+    document.getElementById('skill-notion').style.display='inline-flex';
   }catch(e){box.textContent='오류: '+e.message;}
   btn.disabled=false;btn.textContent='다시 실행';
 }
@@ -907,6 +910,16 @@ function copyOut(boxId,btnId){
   const btn=document.getElementById(btnId);
   btn.textContent='복사됨!';btn.classList.add('copied');
   setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied');},2000);
+}
+async function callNotion(action, payload) {
+  const res = await fetch('/.netlify/functions/notion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, payload })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
 // ── Storage ──
@@ -928,6 +941,89 @@ function loadState(){
     }
   }catch(e){}
 }
+async function saveReelToNotion() {
+  const box = document.getElementById('reel-box');
+  const topic = document.getElementById('r-topic').value.trim();
+  const mode = getChip('mode-grp');
+  if (!box._raw) return;
+
+  const btn = document.getElementById('reel-notion');
+  btn.textContent = '저장 중...';
+
+  try {
+    const isSelf = mode.includes('Self-edit');
+    const isEditor = mode.includes('편집자');
+
+    let result;
+    if (isSelf) {
+      // Self-edit → KONNECT 페이지 하위에 저장
+      result = await callNotion('create_page', {
+        parent_id: '34fe0a02-5b03-8086-b602-f81c3e3043f6',
+        title: 'Self-Edit. ' + topic,
+        content: box._raw
+      });
+    } else if (isEditor) {
+      // 편집자용 → Social Media Board DB에 저장
+      result = await callNotion('add_to_db', {
+        database_id: '347e0a02-5b03-80a9-8e33-dd59d395e342',
+        title: topic,
+        content: box._raw,
+        status: 'Ready to Post'
+      });
+    } else {
+      // 미리보기 → Social Media Board 하위 페이지로 저장
+      result = await callNotion('create_page', {
+        parent_id: '347e0a02-5b03-80a9-8e33-dd59d395e342',
+        title: '대본 미리보기. ' + topic,
+        content: box._raw
+      });
+    }
+
+    if (result.success) {
+      btn.textContent = '저장됨!';
+      notif('Notion에 저장됐어요!');
+      setTimeout(() => btn.textContent = '📝 Notion 저장', 3000);
+    }
+  } catch(e) {
+    btn.textContent = '저장 실패';
+    notif('오류: ' + e.message);
+    setTimeout(() => btn.textContent = '📝 Notion 저장', 3000);
+  }
+}
+async function saveSkillToNotion(){
+  const box=document.getElementById('skill-box');
+  const title=document.getElementById('skill-title').textContent;
+  if(!box._raw)return;
+  const btn=document.getElementById('skill-notion');
+  btn.textContent='저장 중...';
+  const konnectSkills=['konnect_cardnews','konnect_notice','konnect_seating','konnect_remind','game_idea'];
+  const seoulVibeSkills=['sv_price','sv_gumroad','sv_pdf_plan','sv_caption'];
+  let parentId;
+  if(konnectSkills.includes(currentSkillId)){
+    parentId='34fe0a02-5b03-8086-b602-f81c3e3043f6';
+  }else if(seoulVibeSkills.includes(currentSkillId)){
+    parentId='35fe0a02-5b03-810a-8c53-c84203615116';
+  }else{
+    parentId='347e0a02-5b03-80a9-8e33-dd59d395e342';
+  }
+  try{
+    const result=await callNotion('create_page',{
+      parent_id:parentId,
+      title:title+' — '+new Date().toLocaleDateString('ko-KR'),
+      content:box._raw
+    });
+    if(result.success){
+      btn.textContent='저장됨!';
+      notif('Notion에 저장됐어요!');
+      setTimeout(()=>btn.textContent='📝 Notion 저장',3000);
+    }
+  }catch(e){
+    btn.textContent='저장 실패';
+    notif('오류: '+e.message);
+    setTimeout(()=>btn.textContent='📝 Notion 저장',3000);
+  }
+}
+  
 function saveAll(){
   S.notes.kbrain=document.getElementById('k-brain')?.value||'';
   S.notes.svmemo=document.getElementById('sv-memo')?.value||'';
